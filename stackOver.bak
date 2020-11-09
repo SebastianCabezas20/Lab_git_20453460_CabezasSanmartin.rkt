@@ -1,83 +1,122 @@
 #lang racket
+;TDA stack
+()
+
+;TDA Usuario
+;((USERNAME x PASS x REPUTACION x ACTIVIDAD)ID)
+;Constructor (usuarioNuevo "username" pass)
+
+;Pertenencia
+
+;Selectores (getUsername usuario)(getPass usuario)(getReputacion usuario)(getActividad usuario)(getIds usuario)
+;(define getIds ids) (getPrimerId ids) (getSigId ids) (getId ids id);busca en la lista de ids
+
+;Modificadores
+;(setActividad usuario)(addId id ids)(removeId id ids)
+
+;TDA Usuarios
+;(USUARIO x USUARIO x USUARIO)
+
+;Selectores
+;(getPrimerUsuario usuarios)(getSigUsuario usuarios)(getUsuario usuarios username)
+
+;modificadores
+;(agregarUsuario )
 
 ;----------------------------------------USUARIO--------------------------------------------
 (define reputacionVacia 0)
 (define idVacio null)
 
 ;Constructor
-(define usuario (lambda(username pass)
-                    (cons (cons(cons(cons username pass)reputacionVacia)"activo")idVacio)))
+(define usuarioNuevo (lambda(username pass)
+                    (cons(list username pass reputacionVacia "inactivo") idVacio)))
 ;Pertenencia
-(define usuario? (lambda(usuario username)
-                   (if(equal? (getUsername usuario) username)
-                      #t
-                      #f)))
-(define reputacionMayor? (lambda(usuario valor)
-                   (if( >= (getReputacion usuario) valor)
-                      #t
-                      #f)))
-(define activo? (lambda(usuario)
-                   (if(equal? (getActividad usuario) "activo")
-                      #t
-                      #f)))
-(define id? (lambda(ids id);busca en la lista de ids
+
+
+;Selectores
+(define getUsername (lambda(usuario)
+                           (car(car usuario))))
+
+(define getPass (lambda(usuario)
+                           (cadr(car usuario))))
+
+(define getReputacion (lambda(usuario)
+                           (caddr(car usuario))))
+
+(define getActividad (lambda(usuario)
+                           (cadddr(car usuario))))
+
+(define getIds cdr)
+
+(define getPrimerId car)
+
+(define getSigId cdr)
+
+(define getId (lambda(ids id);busca en la lista de ids
                    (if(equal? (getPrimerId ids) idVacio );si llega al ultimo no esta
                       idVacio
                       (if(equal?(getPrimerId ids) id);caso que no de null
                          #t;existe esa id en el usuario
-                      (id? (getSigId ids) id)))));busca en los siguientes ids
-
-;Selectores
-(define getUsername (lambda(usuario)
-                           (car(car(car (car usuario))))))
-
-(define getPass (lambda(usuario)
-                           (cdr(car(car(car usuario))))))
-
-(define getReputacion (lambda(usuario)
-                           (cdr(car(car usuario)))))
-
-(define getActividad (lambda(usuario)
-                           (cdr(car usuario))))
-
-(define getIds (lambda(usuario)
-                 (cdr usuario)))
-
-(define getPrimerId (lambda(ids)
-                           (car ids)))
-
-(define getSigId (lambda(ids)
-                    (cdr ids)))
+                      (getId (getSigId ids) id)))));busca en los siguientes ids
 ;Modificadores
 (define setActividad (lambda(usuario)
-                       (if(activo? usuario)
-                          (cons(cons(car(car usuario))"inactivo")(getIds usuario))
-                          (cons(cons(car(car usuario))"activo") (getIds usuario)))))
+                       (if(equal? (getActividad usuario)"activo")
+                          (cons(list (getUsername usuario)(getPass usuario)(getReputacion usuario)"inactivo")(getIds usuario))
+                          (cons(list (getUsername usuario)(getPass usuario)(getReputacion usuario)"activo")(getIds usuario)))))
 ;(define addId )
 ;(define removeId)
 
 ;------------------------------------- STACK USUARIOS---------------------------------------------
 
 (define stackUsuariosVacia null)
-;Constructores
+;Constructores 
 ;Selectores
 
-(define getPrimerUsuario (lambda(stackUsuarios)
-                           (car stackUsuarios)))
+(define getPrimerUsuario car)
 
-(define getSigUsuario (lambda(stackUsuarios)
-                            (cdr stackUsuarios)))
+(define getSigUsuario cdr)
 
 (define getUsuario (lambda(stackUsuarios username)
-                     (if(equal?(getPrimerUsuario stackUsuarios)stackUsuariosVacia);si llega a null
+                     (if(equal? stackUsuarios stackUsuariosVacia);si llega a null
                         stackUsuariosVacia
-                        (if(usuario?(getPrimerUsuario stackUsuarios) username)
+                        (if(equal? (getUsername(getPrimerUsuario stackUsuarios)) username)
                            (getPrimerUsuario stackUsuarios);usuario que estamos buscando lo retornamos
                            (getUsuario (getSigUsuario stackUsuarios) username)))));seguimos buscando 
 
+;modificadores
+(define agregarUsuario cons)
+
+;------------REGISTER
+(define register (lambda(stack username pass)
+                   (if(null? stack)
+                      (usuarioNuevo username pass)
+                      (if(equal?(getUsername(getPrimerUsuario stack))username)
+                         (cons(getPrimerUsuario stack)(getSigUsuario stack))
+                         (cons(getPrimerUsuario stack)(register (getSigUsuario stack) username pass))))))
+
+;------------------------LOGIN
+(define login (lambda(stack username pass operation)
+                (if(null? stack)
+                   null
+                   (if(and(equal?(getUsername(getPrimerUsuario stack))username)(equal?(getPass(getPrimerUsuario stack))pass))
+                      (setActividad(getPrimerUsuario stack))
+                       (if(equal? operation "ask")
+                          (lambda(pregunta)"pregunta")
+                          null)
+                      (login (getSigUsuario stack) username pass operation)))))
 
 
-(define usuariox (usuario "hola" 1234))
-
-
+(define usuariox (usuarioNuevo "hola" 1234))
+(define stackUsuarios (list (usuarioNuevo "primero" 1234)(usuarioNuevo "segundo" 5678)(usuarioNuevo "tercero" 45)))
+(getUsername usuariox)
+(getPass usuariox)
+(getActividad usuariox)
+(getReputacion usuariox)
+(getIds usuariox)
+(setActividad usuariox)
+(getUsuario stackUsuarios "primero")
+"---"
+(login stackUsuarios "primero" 1234 "ask")
+"------------"
+(register stackUsuarios "sebastian" 123)
 
