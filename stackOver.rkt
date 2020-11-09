@@ -10,12 +10,40 @@
 ;Modificador
 ;(addUsuarioActivo stack usuario)
 (define addUsuarioActivo (lambda(stack usuario)
-                           (list (getUsuarios stack)(getPreguntas)(getRespuestas)(setActividad usuario))))
+                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuario)))
 
 ;TDA fecha(DIA x MES x AÑO)
 ;Constructor (fecha dia mes año)
 (define fecha (lambda(dia mes año)
                 (list dia mes año)))
+
+;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x(TAGS))
+;Constructor (pregunta id autor fecha pregunta tags)
+(define pregunta (lambda(id autor fecha pregunta tags)
+                   (cons(list id autor fecha pregunta)tags)))
+;Selectores
+;(idPregunta pregunta)(autorPregunta pregunta)(fechaPregunta pregunta)(Pregunta pregunta)(tagsPregunta pregunta)
+(define primeraPregunta car)
+(define sigPregunta cdr)
+(define tagsPregunta cdr)
+(define idPregunta (lambda(pregunta)
+                           (car(car pregunta))))
+(define autorPregunta (lambda(pregunta)
+                           (cadr(car pregunta))))
+(define fechaPregunta (lambda(pregunta)
+                           (caddr(car pregunta))))
+(define getPregunta (lambda(pregunta)
+                           (cadddr(car pregunta))))
+;Modificadores
+;(addPregunta stack pregunta);saca el estado activo del usuario
+(define addPregunta (lambda(stack pregunta)
+                      (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) null)))
+;otras funciones
+;(contador preguntas)
+(define contador (lambda(preguntas)
+                   (if(null? preguntas)
+                      0
+                      (+ (contador(sigPregunta preguntas))1))))
 
 ;TDA Usuario
 ;((USERNAME x PASS x REPUTACION x ACTIVIDAD)ID)
@@ -91,12 +119,6 @@
 
 (define getSigUsuario cdr)
 
-(define getUsuario (lambda(stackUsuarios username)
-                     (if(equal? stackUsuarios stackUsuariosVacia);si llega a null
-                        stackUsuariosVacia
-                        (if(equal? (getUsername(getPrimerUsuario stackUsuarios)) username)
-                           (getPrimerUsuario stackUsuarios);usuario que estamos buscando lo retornamos
-                           (getUsuario (getSigUsuario stackUsuarios) username)))));seguimos buscando 
 
 ;modificadores
 (define agregarUsuario cons)
@@ -118,11 +140,17 @@
                          stack
                          (if(and(equal?(getUsername(getPrimerUsuario(getUsuarios stack)))username)(equal?(getPass(getPrimerUsuario(getUsuarios stack)))pass))
                             (if(equal? operation "ask")
-                               (lambda(pregunta)"pregunta")
+                               (ask (addUsuarioActivo stack (getPrimerUsuario(getUsuarios stack))))
                                "no")
                          (login (sigUsuariosStack stack)username pass operation)))))
 
 ;------------------ASK
+(define ask (lambda(stack)(lambda(dia mes año)(lambda(preguntaUsuario et1)
+              (if(pair?(getUsuarioActivo stack))
+                (addPregunta stack (pregunta (+ (contador(getPreguntas stack))1) (getUsername(getUsuarioActivo stack)) (fecha dia mes año) preguntaUsuario et1))
+                 stack)))))
+
+
 
 (define stackPreguntas null)
 (define stackRespuestas null)
@@ -131,7 +159,7 @@
 (register stackOver "sebastian" 1234)
 
 "---"
-(login stackOver "primero" 1234 "ask")
+(define SO2 (((login stackOver "primero" 1234 "ask")12 10 2020)"cuanto es el estado" "estado"))
 "------------"
 ;(register stackUsuarios "sebastian" 123)
 
