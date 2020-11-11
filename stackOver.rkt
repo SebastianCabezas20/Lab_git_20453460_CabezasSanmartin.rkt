@@ -1,12 +1,15 @@
 #lang racket
 ;TDA stack
-;(USUARIOS x PREGUNTAS x RESPUESTAS x USUARIOACTIVO)
+;(USUARIOS x PREGUNTAS x RESPUESTAS x USUARIOACTIVO X RECOMPENSAS)
 ;Selectores
-;(getUsuarios stack)(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(sigUsuariosStack stack)
+;(getUsuarios stack)(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(sigUsuariosStack stack)(getRecompensas stack)
 (define getUsuarios car) (define getPreguntas cadr)(define getRespuestas caddr)(define getUsuarioActivo cadddr)
 
+(define getRecompensas (lambda(stack)
+                         (cadr(cdddr))))
+
 (define sigUsuariosStack (lambda(stack)
-                           (list (getSigUsuario(getUsuarios stack))(getPreguntas)(getRespuestas)(getUsuarioActivo))))
+                           (list (getSigUsuario(getUsuarios stack))(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack))))
 ;Modificador
 ;(addUsuarioActivo stack usuario)
 (define addUsuarioActivo (lambda(stack usuario)
@@ -17,23 +20,41 @@
 (define fecha (lambda(dia mes año)
                 (list dia mes año)))
 
-;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x(TAGS))
+;TDA recompensas (IdRespuesta x UsuarioRecompensa x recompensa x UsuarioResponde)
+;Constructor (recompensa idRespuesta usuarioRecompensa recompensa)
+(define recompensa (lambda(idRespuesta usuarioRecompensa recompensa)
+                     (list idRespuesta usuarioRecompensa recompensa null)))
+
+;Selectores (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)(usuarioResponde recompensa)
+(define getIdRecompensa car)
+(define getUsuarioRecompensa cadr)
+(define getRecompensa caddr)
+(define getUsuarioResponde cadddr)
+;Modificadores (agregarUsuarioResponde recompensa username)
+(define agregarUsuarioResponde (lambda(recompensa username)
+                                 (list (getIdRecompensa recompensa)(getUsuarioRecompensa recompensa)(getRecompensa recompensa)username)))
+
+;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD) REWARD 0 = NO 1 = SI
 ;Constructor (pregunta id autor fecha pregunta tags)
-(define pregunta (lambda(id autor fecha pregunta tags)
-                   (cons(list id autor fecha pregunta)tags)))
+(define pregunta (lambda(id autor fecha pregunta tag1 tag2 tag3)
+                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0)))
 ;Selectores
 ;(idPregunta pregunta)(autorPregunta pregunta)(fechaPregunta pregunta)(Pregunta pregunta)(tagsPregunta pregunta)
+;(idRespuestas pregunta)(reward pregunta)
 (define primeraPregunta car)
 (define sigPregunta cdr)
-(define tagsPregunta cdr)
+(define tagsPregunta cadr)
 (define idPregunta (lambda(pregunta)
-                           (car(car pregunta))))
+                     (car(car pregunta))))
 (define autorPregunta (lambda(pregunta)
-                           (cadr(car pregunta))))
+                        (cadr(car pregunta))))
 (define fechaPregunta (lambda(pregunta)
-                           (caddr(car pregunta))))
+                        (caddr(car pregunta))))
 (define getPregunta (lambda(pregunta)
-                           (cadddr(car pregunta))))
+                      (cadddr(car pregunta))))
+(define idRespuestas caddr)
+(define getReward cadddr)
+
 ;Modificadores
 ;(addPregunta stack pregunta);saca el estado activo del usuario
 (define addPregunta (lambda(stack pregunta)
@@ -46,120 +67,102 @@
                       (+ (contador(sigPregunta preguntas))1))))
 
 ;TDA Usuario
-;((USERNAME x PASS x REPUTACION x ACTIVIDAD)ID)
+;(USERNAME x PASS x REPUTACION x REPUTACIONRELATIVA x RECOMPENSA)
 ;Constructor (usuarioNuevo "username" pass)
+(define usuarioNuevo (lambda(username pass)
+                       (list username pass reputacionVacia reputacionVacia 0)))
 
 ;Pertenencia
 
-;Selectores (getUsername usuario)(getPass usuario)(getReputacion usuario)(getActividad usuario)(getIds usuario)
-;(define getIds ids) (getPrimerId ids) (getSigId ids) (getId ids id);busca en la lista de ids
+;Selectores (getUsername usuario)(getPass usuario)(getReputacion usuario)
+(define getUsername car)
 
-;Modificadores
-;(setActividad usuario)(addId id ids)(removeId id ids)
+(define getPass cadr)
+
+(define getReputacion caddr)
+
+(define getReputacionRelativa cadddr)
+
+(define getRecompesa (lambda(usuario)
+                       (cadr(cdddr usuario))))
+
 
 ;TDA Usuarios
 ;(USUARIO x USUARIO x USUARIO)
 
 ;Selectores
-;(getPrimerUsuario usuarios)(getSigUsuario usuarios)(getUsuario usuarios username)
+;(getPrimerUsuario usuarios)(getSigUsuario usuarios)
+(define getPrimerUsuario car)
+
+(define getSigUsuario cdr)
 
 ;modificadores
-;(agregarUsuario )
+(define agregarUsuario cons)
 
 ;----------------------------------------USUARIO--------------------------------------------
 (define reputacionVacia 0)
 (define idVacio null)
 
-;Constructor
-(define usuarioNuevo (lambda(username pass)
-                    (cons(list username pass reputacionVacia "inactivo") idVacio)))
-;Pertenencia
-
-
-;Selectores
-(define getUsername (lambda(usuario)
-                           (car(car usuario))))
-
-(define getPass (lambda(usuario)
-                           (cadr(car usuario))))
-
-(define getReputacion (lambda(usuario)
-                           (caddr(car usuario))))
-
-(define getActividad (lambda(usuario)
-                           (cadddr(car usuario))))
-
-(define getIds cdr)
-
-(define getPrimerId car)
-
-(define getSigId cdr)
-
-(define getId (lambda(ids id);busca en la lista de ids
-                   (if(equal? (getPrimerId ids) idVacio );si llega al ultimo no esta
-                      idVacio
-                      (if(equal?(getPrimerId ids) id);caso que no de null
-                         #t;existe esa id en el usuario
-                      (getId (getSigId ids) id)))));busca en los siguientes ids
-;Modificadores
-(define setActividad (lambda(usuario)
-                       (if(equal? (getActividad usuario)"activo")
-                          (cons(list (getUsername usuario)(getPass usuario)(getReputacion usuario)"inactivo")(getIds usuario))
-                          (cons(list (getUsername usuario)(getPass usuario)(getReputacion usuario)"activo")(getIds usuario)))))
-;(define addId )
-;(define removeId)
-
 ;------------------------------------- STACK USUARIOS---------------------------------------------
 
 (define stackUsuariosVacia null)
-;Constructores 
-;Selectores
-
-(define getPrimerUsuario car)
-
-(define getSigUsuario cdr)
-
-
-;modificadores
-(define agregarUsuario cons)
 
 ;------------REGISTER
 (define registerFuncion (lambda(stack username pass)
-                   (if(null? stack)
-                      (usuarioNuevo username pass)
-                      (if(equal?(getUsername(getPrimerUsuario stack))username)
-                         (cons(getPrimerUsuario stack)(getSigUsuario stack))
-                         (cons(getPrimerUsuario stack)(registerFuncion (getSigUsuario stack) username pass))))))
+                          (if(null? stack)
+                             (usuarioNuevo username pass)
+                             (if(equal?(getUsername(getPrimerUsuario stack))username)
+                                (cons(getPrimerUsuario stack)(getSigUsuario stack))
+                                (cons(getPrimerUsuario stack)(registerFuncion (getSigUsuario stack) username pass))))))
 
 (define register (lambda(stack username pass)
-                            (list (registerFuncion(getUsuarios stack)username pass)(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack))))
+                   (list (registerFuncion(getUsuarios stack)username pass)(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack))))
 
 ;------------------------LOGIN
+
 (define login (lambda(stack username pass operation)
-                (if(null?(getUsuarios stack))
-                         stack
-                         (if(and(equal?(getUsername(getPrimerUsuario(getUsuarios stack)))username)(equal?(getPass(getPrimerUsuario(getUsuarios stack)))pass))
-                            (if(equal? operation "ask")
-                               (ask (addUsuarioActivo stack (getPrimerUsuario(getUsuarios stack))))
-                               "no")
-                         (login (sigUsuariosStack stack)username pass operation)))))
+                (funcionLogin stack username pass operation stack)))
+
+(define funcionLogin (lambda(stack username pass operation stackFinal)
+                       (if(null?(getUsuarios stack))
+                          stack
+                          (if(and(equal?(getUsername(getPrimerUsuario(getUsuarios stack)))username)(equal?(getPass(getPrimerUsuario(getUsuarios stack)))pass))
+                             (if(equal? operation "ask")
+                                (ask (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
+                                "no")
+                             (funcionLogin (sigUsuariosStack stack)username pass operation stackFinal)))))
 
 ;------------------ASK
-(define ask (lambda(stack)(lambda(dia mes año)(lambda(preguntaUsuario et1)
-              (if(pair?(getUsuarioActivo stack))
-                (addPregunta stack (pregunta (+ (contador(getPreguntas stack))1) (getUsername(getUsuarioActivo stack)) (fecha dia mes año) preguntaUsuario et1))
-                 stack)))))
+(define ask (lambda(stack)(lambda(dia mes año)(lambda(preguntaUsuario et1 et2 et3)
+                                                (if(pair?(getUsuarioActivo stack))
+                                                   (addPregunta stack (pregunta (+ (contador(getPreguntas stack))1) (getUsername(getUsuarioActivo stack)) (fecha dia mes año) preguntaUsuario et1 et2 et3))
+                                                   stack)))))
+
+;---------------------REWARD
+
+(define agregarRecompensa (lambda(stack usernameActivo idPregunta recompensa)
+                            (list (recompesaUsuario(getUsuarios stack)usernameActivo recompensa))))
+
+(define reward (lambda(stack)
+                 (lambda(idPregunta)
+                   (lambda(recompensa)
+                     (if(pair?(getUsuarioActivo stack))
+                        (if( <= recompensa (getReputacionRelativa(getUsuarioActivo)))
+                           (agregarRecompensa stack (getUsername(getUsuarioActivo stack)) idPregunta recompensa)
+                           stack)
+                        stack)))))
 
 
 
 (define stackPreguntas null)
 (define stackRespuestas null)
+(define sinUsuarioActivo null)
 (define stackUsuarios (list (usuarioNuevo "primero" 1234)(usuarioNuevo "segundo" 5678)(usuarioNuevo "tercero" 45)));stack de usuarios
-(define stackOver (list stackUsuarios stackPreguntas stackRespuestas null))
+(define stackOver (list stackUsuarios stackPreguntas stackRespuestas sinUsuarioActivo))
 (register stackOver "sebastian" 1234)
 
 "---"
-(define SO2 (((login stackOver "primero" 1234 "ask")12 10 2020)"cuanto es el estado" "estado"))
+(define SO2 (((login stackOver "segundo" 5678 "ask")12 10 2020)"cuanto es el estado" "estado" "eos" "ers"))
 "------------"
-;(register stackUsuarios "sebastian" 123)
+
 
