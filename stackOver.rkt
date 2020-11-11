@@ -6,7 +6,7 @@
 (define getUsuarios car) (define getPreguntas cadr)(define getRespuestas caddr)(define getUsuarioActivo cadddr)
 
 (define getRecompensas (lambda(stack)
-                         (cdr(cdr(cdr(cdr stack))))))
+                         (car(cdr(cdr(cdr(cdr stack)))))))
 
 (define sigUsuariosStack (lambda(stack)
                            (list (getSigUsuario(getUsuarios stack))(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack))))
@@ -15,7 +15,7 @@
 (define addUsuarioActivo (lambda(stack usuario)
                            (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuario(getRecompensas stack))))
 (define removeUsuarioActivo (lambda(stack)
-                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) null (getRecompensas stack))))
+                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuarioInactivo (getRecompensas stack))))
 
 ;TDA fecha(DIA x MES x AÑO)
 ;Constructor (fecha dia mes año)
@@ -24,17 +24,21 @@
 
 ;TDA recompensas (IdRespuesta x UsuarioRecompensa x recompensa x UsuarioResponde)
 ;Constructor (recompensa idRespuesta usuarioRecompensa recompensa)
-(define recompensa (lambda(idRespuesta usuarioRecompensa recompensa)
+(define consRecompensa (lambda(idRespuesta usuarioRecompensa recompensa)
                      (list idRespuesta usuarioRecompensa recompensa null)))
 
 ;Selectores (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)(usuarioResponde recompensa)
-(define getIdRecompensa car)
-(define getUsuarioRecompensa cadr)
+;(primeraRecompensa recompensas)(sigRecompensa recompensas)
+(define primeraRecompensa car)
+(define sigRecompensa cdr)
+(define idRecompensa car)
+(define usuarioRecompensa cadr)
 (define getRecompensa caddr)
-(define getUsuarioResponde cadddr)
+(define usuarioResponde cadddr)
 ;Modificadores (agregarUsuarioResponde recompensa username)
+;agrega a usuario que respondio la recompensa
 (define addUsuarioResponde (lambda(recompensa username)
-                                 (list (getIdRecompensa recompensa)(getUsuarioRecompensa recompensa)(getRecompensa recompensa)username)))
+                                 (list (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)username)))
 
 
 ;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD) REWARD 0 = NO 1 = SI
@@ -57,11 +61,16 @@
                       (cadddr(car pregunta))))
 (define idRespuestas caddr)
 (define getReward cadddr)
+(define primerosDatosPregunta car)
 
 ;Modificadores
 ;(addPregunta stack pregunta);saca el estado activo del usuario
 (define addPregunta (lambda(stack pregunta)
-                      (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) null)))
+                      (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) usuarioInactivo (getRecompensa stack))))
+;((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD)
+(define addIdPregunta (lambda(pregunta idResp)
+                        (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(cons idResp(idRespuestas pregunta))(getReward pregunta))))
+
 ;otras funciones
 ;(contador preguntas)
 (define contador (lambda(preguntas)
@@ -100,10 +109,10 @@
 ;modificadores
 (define agregarUsuario cons)
 
-;TDA respuestas (ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA x (TAGS))
+;TDA respuestas (ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA x (TAGS)ESTADO)ESTADO 0=NO ACEPTADA 1 =ACEPTADA
 ;Constructor (respuesta id autor idPregunta fecha respuesta tags)
 (define respuesta (lambda(id autor idPregunta fecha respuesta et1 et2 et3)
-                    (cons(list id autor idPregunta fecha respuesta)(list et1 et2 et3))))
+                    (cons(cons(list id autor idPregunta fecha respuesta)(list et1 et2 et3))0)))
 ;Selectores(idRespuesta respuesta)(autorRespuesta respuesta)(idPRespuesta respuesta)(fechaRespuesta respuesta)(getRespuesta respuesta)(tagsRespuesta respuesta)
 (define idRespuesta (lambda(respuesta)
                       (car(car respuesta))))
@@ -115,15 +124,19 @@
                       (cadddr(car respuesta))))
 (define getRespuesta (lambda(respuesta)
                       (cdr(cdddr respuesta))))
-(define tagsRespuesta cdr)
+(define tagsRespuesta cadr)
+(define estadoRespuesta cddr)
 
-;Modificadores (addRespuesta stack respuesta);(USUARIOS x PREGUNTAS x RESPUESTAS x USUARIOACTIVO X RECOMPENSAS)
-(define addRespuesta (lambda(stack respuesta)
-                       (list(getUsuarios stack)(getPreguntas stack)(cons respuesta (getRespuestas stack))(getUsuarioActivo stack)(getRecompensas stack))))
+;Modificadores (addRespuesta stack respuesta)
+;añade respuesta a stack de respuestas Y REGISTRA SI TIENE RECOMPENSA
+(define addRespuesta (lambda(stack respuesta idP)
+                       (list(getUsuarios stack)(getPreguntas stack)(cons respuesta (getRespuestas stack))usuarioInactivo
+                            (addUsuarioRecompensa(getRecompensas stack)idP (getUsername(getUsuarioActivo stack))))))
 
 ;----------------------------------------USUARIO--------------------------------------------
 (define reputacionVacia 0)
 (define idVacio null)
+(define usuarioInactivo null)
 
 ;------------------------------------- STACK USUARIOS---------------------------------------------
 
@@ -153,7 +166,9 @@
                                 (ask (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
                                 (if(equal? operation "reward")
                                    (reward (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                   "no"))
+                                   (if(equal? operation "answer")
+                                      (answer (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
+                                      ("no"))))
                              (funcionLogin (sigUsuariosStack stack)username pass operation stackFinal)))))
 
 ;------------------ASK
@@ -173,27 +188,48 @@
 ;Activa la recompensa en la pregunta 
 (define activarRecompensa (lambda(preguntas id)
                             (if(equal?(idPregunta(primeraPregunta preguntas))id)
-  (cons(list(idPregunta(primeraPregunta preguntas))(autorPregunta(primeraPregunta preguntas))(fechaPregunta(primeraPregunta preguntas))(getPregunta(primeraPregunta preguntas))
-       (tagsPregunta(primeraPregunta preguntas))(idRespuestas(primeraPregunta preguntas))1)(sigPregunta preguntas))
+  (cons(list(list(idPregunta(primeraPregunta preguntas))(autorPregunta(primeraPregunta preguntas))(fechaPregunta(primeraPregunta preguntas))(getPregunta(primeraPregunta preguntas)))
+       (tagsPregunta(primeraPregunta preguntas))(idRespuestas(primeraPregunta preguntas))1) (sigPregunta preguntas))
   (cons(primeraPregunta preguntas)(activarRecompensa(sigPregunta preguntas)id)))))
 
 ;añade recompensa en el stack
 (define addRecompensa (lambda(stack usernameActivo id recompensaUsuario)
 (list (restaRelativa (getUsuarios stack)usernameActivo recompensaUsuario)(activarRecompensa (getPreguntas stack) id)
-  (getRespuestas stack) null (list(recompensa id usernameActivo recompensaUsuario)(getRecompensas stack)))))
+  (getRespuestas stack) usuarioInactivo (cons(consRecompensa id usernameActivo recompensaUsuario)(getRecompensas stack)))))
 
+;Funcion principal de reward
 (define reward (lambda(stack)
-                 (lambda(idPregunta)
+                 (lambda(idP)
                    (lambda(recompensa)
                      (if(pair?(getUsuarioActivo stack))
                         (if( <= recompensa (getReputacionRelativa(getUsuarioActivo stack)))
-                           (addRecompensa stack (getUsername(getUsuarioActivo stack)) idPregunta recompensa)
+                           (addRecompensa stack (getUsername(getUsuarioActivo stack)) idP recompensa)
                            (removeUsuarioActivo stack))
-                        (removeUsuarioActivo stack))))))
+                        stack)))))
 
 ;----------------------------------------ANSWERS
 
+;agrega al usuario que responde si tiene recompensa
+(define addUsuarioRecompensa (lambda(recompensas idP usernameActivo)
+                               (if(null? recompensas)
+                                  null
+                                  (if(equal?(idRecompensa(primeraRecompensa recompensas))idP)
+                               (cons(addUsuarioResponde (primeraRecompensa recompensas)usernameActivo)(sigRecompensa recompensas))
+                               (cons(primeraRecompensa recompensas)(addUsuarioRecompensa (sigRecompensa recompensas)idP usernameActivo))))))
 
+;añade id de respuesta a pregunta(addIdaP (getPreguntas stack) idP(+(contador(getRespuestas stack))1))
+;(define addIdaP (lambda(preguntas idPreg idResp)
+                  ;(if(null? preguntas)
+                     ;null
+                     ;(if(equal?(idPregunta(primeraPregunta preguntas))idPreg)
+                     ;   (cons(addIdPregunta (primeraPregunta preguntas)idResp)(sigPregunta preguntas))
+                      ;  (cons(primeraPregunta preguntas)(addIdaP(sigPregunta preguntas)idPreg idResp))))))
+
+;Funcion principal de answer
+(define answer (lambda(stack)(lambda(dia mes año)(lambda(idP)(lambda(respuestaUsuario et1 et2 et3)
+              (if(pair?(getUsuarioActivo stack))
+ (addRespuesta stack (respuesta(+(contador(getRespuestas stack))1)(getUsername(getUsuarioActivo stack)) idP (fecha dia mes año)respuestaUsuario et1 et2 et3) idP) 
+ stack))))))
 
 
 (define stackRecompensas null)
@@ -208,4 +244,6 @@
 (define SO2 (((login stackOver "segundo" 5678 "ask")12 10 2020)"cuanto es el estado" "estado" "eos" "ers"))
 "------------"
 (define SO3 (((login SO2 "segundo" 5678 "reward")1)20))
+
+(define SO4 ((((login SO3 "tercero" 45 "answer")31 12 2020)1)"la medida es 1" "medida" "me" "h"))
 
