@@ -100,6 +100,27 @@
 ;modificadores
 (define agregarUsuario cons)
 
+;TDA respuestas (ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA x (TAGS))
+;Constructor (respuesta id autor idPregunta fecha respuesta tags)
+(define respuesta (lambda(id autor idPregunta fecha respuesta et1 et2 et3)
+                    (cons(list id autor idPregunta fecha respuesta)(list et1 et2 et3))))
+;Selectores(idRespuesta respuesta)(autorRespuesta respuesta)(idPRespuesta respuesta)(fechaRespuesta respuesta)(getRespuesta respuesta)(tagsRespuesta respuesta)
+(define idRespuesta (lambda(respuesta)
+                      (car(car respuesta))))
+(define autorRespuesta (lambda(respuesta)
+                      (cadr(car respuesta))))
+(define idPRespuesta (lambda(respuesta)
+                      (caddr(car respuesta))))
+(define fechaRespuesta (lambda(respuesta)
+                      (cadddr(car respuesta))))
+(define getRespuesta (lambda(respuesta)
+                      (cdr(cdddr respuesta))))
+(define tagsRespuesta cdr)
+
+;Modificadores (addRespuesta stack respuesta);(USUARIOS x PREGUNTAS x RESPUESTAS x USUARIOACTIVO X RECOMPENSAS)
+(define addRespuesta (lambda(stack respuesta)
+                       (list(getUsuarios stack)(getPreguntas stack)(cons respuesta (getRespuestas stack))(getUsuarioActivo stack)(getRecompensas stack))))
+
 ;----------------------------------------USUARIO--------------------------------------------
 (define reputacionVacia 0)
 (define idVacio null)
@@ -169,6 +190,10 @@
                            (addRecompensa stack (getUsername(getUsuarioActivo stack)) idPregunta recompensa)
                            (removeUsuarioActivo stack))
                         (removeUsuarioActivo stack))))))
+
+;----------------------------------------ANSWERS
+
+
 
 
 (define stackRecompensas null)
