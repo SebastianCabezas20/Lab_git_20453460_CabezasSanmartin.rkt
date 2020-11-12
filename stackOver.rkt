@@ -9,7 +9,7 @@
                          (car(cdr(cdr(cdr(cdr stack)))))))
 
 (define sigUsuariosStack (lambda(stack)
-                           (list (getSigUsuario(getUsuarios stack))(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack))))
+                           (list (getSigUsuario(getUsuarios stack))(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(getRecompensas stack))))
 ;Modificador
 ;(addUsuarioActivo stack usuario)
 (define addUsuarioActivo (lambda(stack usuario)
@@ -168,7 +168,9 @@
                                    (reward (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
                                    (if(equal? operation "answer")
                                       (answer (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                      ("no"))))
+                                      (if(equal? operation "accept")
+                                         (accept (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
+                                         "no"))))
                              (funcionLogin (sigUsuariosStack stack)username pass operation stackFinal)))))
 
 ;------------------ASK
@@ -217,19 +219,97 @@
                                (cons(addUsuarioResponde (primeraRecompensa recompensas)usernameActivo)(sigRecompensa recompensas))
                                (cons(primeraRecompensa recompensas)(addUsuarioRecompensa (sigRecompensa recompensas)idP usernameActivo))))))
 
-;añade id de respuesta a pregunta(addIdaP (getPreguntas stack) idP(+(contador(getRespuestas stack))1))
-;(define addIdaP (lambda(preguntas idPreg idResp)
-                  ;(if(null? preguntas)
-                     ;null
-                     ;(if(equal?(idPregunta(primeraPregunta preguntas))idPreg)
-                     ;   (cons(addIdPregunta (primeraPregunta preguntas)idResp)(sigPregunta preguntas))
-                      ;  (cons(primeraPregunta preguntas)(addIdaP(sigPregunta preguntas)idPreg idResp))))))
+
 
 ;Funcion principal de answer
 (define answer (lambda(stack)(lambda(dia mes año)(lambda(idP)(lambda(respuestaUsuario et1 et2 et3)
               (if(pair?(getUsuarioActivo stack))
  (addRespuesta stack (respuesta(+(contador(getRespuestas stack))1)(getUsername(getUsuarioActivo stack)) idP (fecha dia mes año)respuestaUsuario et1 et2 et3) idP) 
  stack))))))
+;----------------------------------------ACCEPT
+;verifica que la pregunta sea del usuario
+(define esDelUsuario? (lambda(preguntas usernameActivo idP)
+       (if(null? preguntas)
+          #f
+        (if(and(equal?(idPregunta(primeraPregunta preguntas))idP)(equal?(autorPregunta(primeraPregunta preguntas))usernameActivo))
+           #t
+           (esDelUsuario?(sigPregunta preguntas)usernameActivo idP)))))
+
+;verifica si esa pregunta tiene recompesa
+(define tieneRecompensa? (lambda(recompensas idP)
+                           (if(null? recompensas)
+                              #f
+                              (if(equal?(idRecompensa(primeraRecompensa recompensas))idP)
+                                 #t
+                                 (tieneRecompensa?(sigRecompensa recompensas) idP)))))
+
+;realiza las acciones en caso de que haya recompensa en la pregunta
+(define cobrarRecompensa (lambda(stack idP idR)
+ (list(sumarDefinitiva(restarDefinitiva (getUsuarios stack)(buscarRecompensa(getRecompensas stack) idP))(buscarRecompensa (getRecompensas stack)idP))
+      (addIdP(getPreguntas stack) idP idR)(getRespuestas stack)usuarioInactivo(removeRecompensa(getRecompensas stack)idP))))
+
+;Buscar recompensa por el id de pregunta
+(define buscarRecompensa(lambda(recompensas id)
+                          (if(null? recompensas)
+                             null
+                             (if(equal?(idRecompensa(primeraRecompensa recompensas))id)
+                                (primeraRecompensa recompensas)
+                                (buscarRecompensa(sigRecompensa recompensas)id)))))
+
+;suma al usuario que gana recompensa
+(define sumarDefinitiva (lambda(usuarios recompensa)
+                         (if(null? usuarios)
+                            null
+                            (if(equal?(getUsername(getPrimerUsuario usuarios))(usuarioResponde recompensa))
+                               (cons(sumarReputacion (getPrimerUsuario usuarios)(getRecompensa recompensa))(getSigUsuario usuarios))
+                               (cons(getPrimerUsuario usuarios)(sumarDefinitiva(getSigUsuario usuarios)recompensa))))))
+
+;resta al usuario que da recompensa
+(define restarDefinitiva (lambda(usuarios recompensa)
+                         (if(null? usuarios)
+                            null
+                            (if(equal?(getUsername(getPrimerUsuario usuarios))(usuarioRecompensa recompensa))
+                               (cons(restarReputacion(getPrimerUsuario usuarios)(getRecompensa recompensa))(getSigUsuario usuarios))
+                               (cons(getPrimerUsuario usuarios)(sumarDefinitiva(getSigUsuario usuarios)recompensa))))))
+
+;realiza la accion de sumar reputacion a un usuario;
+(define sumarReputacion(lambda(usuario reputacion)
+                         (list(getUsername usuario)(getPass usuario)(+(getReputacion usuario)reputacion)(+(getReputacionRelativa usuario)reputacion))))
+
+;realiza la accion de restar reputacion a un usuario;
+(define restarReputacion(lambda(usuario reputacion)
+                         (list(getUsername usuario)(getPass usuario)(-(getReputacion usuario)reputacion)(getReputacionRelativa usuario))))
+
+
+;Funcion principal de accept
+(define accept (lambda(stack)(lambda(idP)(lambda(idR)
+                     (if(pair?(getUsuarioActivo stack))
+                        (if(esDelUsuario? (getPreguntas stack)(getUsuarioActivo stack) idP)
+                           (if(tieneRecompensa? (getRecompensas stack) idP)
+                              (cobrarRecompensa stack idP idR)
+                              (asignarRespuesta stack idP idR))
+                           (removeUsuarioActivo stack))
+                        stack)))))
+
+;añade id de respuesta a pregunta
+(define addIdP (lambda(preguntas idPreg idResp)
+                  (if(null? preguntas)
+                     null
+                     (if(equal?(idPregunta(primeraPregunta preguntas))idPreg)
+                        (cons(addIdPregunta (primeraPregunta preguntas)idResp)(sigPregunta preguntas))
+                        (cons(primeraPregunta preguntas)(addIdP(sigPregunta preguntas)idPreg idResp))))))
+
+;borra recompensa de la lista
+(define removeRecompensa(lambda(recompensas id)
+                          (if(null? recompensas)
+                             null
+                             (if(equal?(idRecompensa(primeraRecompensa recompensas))id)
+                                (sigRecompensa recompensas)
+                                (cons(primeraRecompensa recompensas)(removeRecompensa(sigRecompensa recompensas)id))))))
+
+;Asigna la respuesta a la pregunta
+(define asignarRespuesta(lambda(stack idP idR)
+    (list(getUsuarios stack)(addIdP(getPreguntas stack) idP idR)(getRespuestas stack)usuarioInactivo(getRecompensas stack))))
 
 
 (define stackRecompensas null)
@@ -246,4 +326,5 @@
 (define SO3 (((login SO2 "segundo" 5678 "reward")1)20))
 
 (define SO4 ((((login SO3 "tercero" 45 "answer")31 12 2020)1)"la medida es 1" "medida" "me" "h"))
+(define SO5 (((login SO3 "segundo" 5678 "accept")1)1))
 
