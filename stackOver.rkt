@@ -21,6 +21,10 @@
 ;Constructor (fecha dia mes año)
 (define fecha (lambda(dia mes año)
                 (list dia mes año)))
+;Selectores
+(define getDia car)
+(define getMes cadr)
+(define getAño caddr)
 
 ;TDA recompensas (IdRespuesta x UsuarioRecompensa x recompensa x UsuarioResponde)
 ;Constructor (recompensa idRespuesta usuarioRecompensa recompensa)
@@ -49,6 +53,9 @@
 ;(idPregunta pregunta)(autorPregunta pregunta)(fechaPregunta pregunta)(Pregunta pregunta)(tagsPregunta pregunta)
 ;(idRespuestas pregunta)(reward pregunta)
 (define primeraPregunta car)
+(define primerTag car)
+(define segundoTag cadr)
+(define tercerTag caddr)
 (define sigPregunta cdr)
 (define tagsPregunta cadr)
 (define idPregunta (lambda(pregunta)
@@ -109,23 +116,27 @@
 ;modificadores
 (define agregarUsuario cons)
 
-;TDA respuestas (ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA x (TAGS)ESTADO)ESTADO 0=NO ACEPTADA 1 =ACEPTADA
+;TDA respuestas ((ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA) x (TAGS)x ESTADO) 0=NO ACEPTADA 1 =ACEPTADA
 ;Constructor (respuesta id autor idPregunta fecha respuesta tags)
 (define respuesta (lambda(id autor idPregunta fecha respuesta et1 et2 et3)
                     (cons(cons(list id autor idPregunta fecha respuesta)(list et1 et2 et3))0)))
 ;Selectores(idRespuesta respuesta)(autorRespuesta respuesta)(idPRespuesta respuesta)(fechaRespuesta respuesta)(getRespuesta respuesta)(tagsRespuesta respuesta)
 (define idRespuesta (lambda(respuesta)
-                      (car(car respuesta))))
+                      (car(car(car respuesta)))))
 (define autorRespuesta (lambda(respuesta)
-                      (cadr(car respuesta))))
+                      (cadr(car(car respuesta)))))
 (define idPRespuesta (lambda(respuesta)
-                      (caddr(car respuesta))))
+                      (caddr(car (car respuesta)))))
 (define fechaRespuesta (lambda(respuesta)
-                      (cadddr(car respuesta))))
+                      (cadddr(car(car respuesta)))))
 (define getRespuesta (lambda(respuesta)
-                      (cdr(cdddr respuesta))))
-(define tagsRespuesta cadr)
-(define estadoRespuesta cddr)
+                      (cadr(cdddr(car(car respuesta))))))
+(define tagsRespuesta (lambda(respuesta)
+                        (cdr(car respuesta))))
+(define estadoRespuesta cdr)
+(define primeraRespuesta car)
+(define sigRespuesta cdr)
+
 
 ;Modificadores (addRespuesta stack respuesta)
 ;añade respuesta a stack de respuestas Y REGISTRA SI TIENE RECOMPENSA
@@ -313,23 +324,56 @@
 
 ;-------------------------------STACK->STRING
 ;Funcion principal de stack->string
-(define stack-string(lambda(stack)
+(define stack->string(lambda(stack)
                       (if(pair?(getUsuarioActivo stack))
                          "si"
                          (imprimirStack stack))))
 
 ;organiza el stack para ser imprimido
 (define imprimirStack (lambda(stack)
-                        (list "USUARIOS DEL STACK""\n"(imprimirUsuarios(getUsuarios stack)))))
+(list "USUARIOS DEL STACK""\n"(imprimirUsuarios(getUsuarios stack))"\n" "PREGUNTAS:""\n"(imprimirPreguntas(getPreguntas stack))"\n"
+      "RESPUESTAS:""\n"(imprimirRespuestas(getRespuestas stack))"\n""RECOMPENSAS:""\n"(imprimirRecompensas(getRecompensas stack))"\n")))
 
-;string del stack completo
+;string del stack usuarios
 (define imprimirUsuarios (lambda(usuarios)
                         (if(null? usuarios)
                            null
                            (cons(ordenarUsuarios(getPrimerUsuario usuarios))(imprimirUsuarios(getSigUsuario usuarios))))))
-;prepara usuarios
+
+;prepara el usuario para ser impreso
 (define ordenarUsuarios (lambda(usuario)
-                  (list"Nombre del usuario:"(getUsername usuario) "Pass del usuario"(getPass usuario)"Reputacion del usuario"(getReputacion usuario)"\n""\n")))
+                  (list" Nombre del usuario:"(getUsername usuario)"\n" "Pass del usuario"(getPass usuario)"Reputacion del usuario"(getReputacion usuario)"\n")))
+
+;string de las preguntas
+(define imprimirPreguntas (lambda(preguntas)
+                        (if(null? preguntas)
+                           null
+                           (cons(ordenarPreguntas(primeraPregunta preguntas))(imprimirPreguntas(sigPregunta preguntas))))))
+;ordena la pregunta para ser impresa
+(define ordenarPreguntas(lambda(pregunta)
+ (list" El usuario"(autorPregunta pregunta)"pregunta:""\n"(getPregunta pregunta)" "(getDia(fechaPregunta pregunta))"/"
+      (getMes(fechaPregunta pregunta))"/"(getAño(fechaPregunta pregunta)) "\n""'Tags'"" ID:"(idPregunta pregunta) "\n")))
+
+;string de las respuestas
+(define imprimirRespuestas (lambda(respuestas)
+                        (if(null? respuestas)
+                           null
+                           (cons(ordenarRespuestas(primeraRespuesta respuestas))(imprimirRespuestas(sigRespuesta respuestas))))))
+;ordena respuesta para ser impresa
+(define ordenarRespuestas(lambda(respuesta)
+  (list "El usuario"(autorRespuesta respuesta)"a respondido a la pregunta"(idPRespuesta respuesta)"\n"(getRespuesta respuesta)" "
+  (getDia(fechaRespuesta respuesta))"/"(getMes(fechaRespuesta respuesta))"/"(getAño(fechaRespuesta respuesta))"\n"
+  "'Tags'"(primerTag(tagsRespuesta respuesta))(segundoTag(tagsRespuesta respuesta))(tercerTag(tagsRespuesta respuesta))" ID:"(idRespuesta respuesta)"\n")))
+
+;string del stack recompensas
+(define imprimirRecompensas (lambda(recompensas)
+                        (if(null? recompensas)
+                           null
+                           (cons(ordenarRecompensa(primeraRecompensa recompensas))(imprimirUsuarios(sigRecompensa recompensas))))))
+;ordena la recompensa
+(define ordenarRecompensa (lambda(recompensa)
+ (list "La pregunta con el ID"(idRecompensa recompensa)"dada por"(usuarioRecompensa recompensa)"la cantidad es"(getRecompensa recompensa)"\n"
+       "y el usuario que respodio a esta pregunta fue"(usuarioResponde recompensa)"\n")))
 
 
 (define stackRecompensas null)
@@ -347,4 +391,6 @@
 
 (define SO4 ((((login SO3 "tercero" 45 "answer")31 12 2020)1)"la medida es 1" "medida" "me" "h"))
 (define SO5 (((login SO4 "segundo" 5678 "accept")1)1))
+
+(display(stack->string SO3))
 
