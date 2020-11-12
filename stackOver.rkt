@@ -311,6 +311,26 @@
 (define asignarRespuesta(lambda(stack idP idR)
     (list(getUsuarios stack)(addIdP(getPreguntas stack) idP idR)(getRespuestas stack)usuarioInactivo(getRecompensas stack))))
 
+;-------------------------------STACK->STRING
+;Funcion principal de stack->string
+(define stack-string(lambda(stack)
+                      (if(pair?(getUsuarioActivo stack))
+                         "si"
+                         (imprimirStack stack))))
+
+;organiza el stack para ser imprimido
+(define imprimirStack (lambda(stack)
+                        (list "USUARIOS DEL STACK""\n"(imprimirUsuarios(getUsuarios stack)))))
+
+;string del stack completo
+(define imprimirUsuarios (lambda(usuarios)
+                        (if(null? usuarios)
+                           null
+                           (cons(ordenarUsuarios(getPrimerUsuario usuarios))(imprimirUsuarios(getSigUsuario usuarios))))))
+;prepara usuarios
+(define ordenarUsuarios (lambda(usuario)
+                  (list"Nombre del usuario:"(getUsername usuario) "Pass del usuario"(getPass usuario)"Reputacion del usuario"(getReputacion usuario)"\n""\n")))
+
 
 (define stackRecompensas null)
 (define stackPreguntas null)
