@@ -270,7 +270,7 @@
                             null
                             (if(equal?(getUsername(getPrimerUsuario usuarios))(usuarioRecompensa recompensa))
                                (cons(restarReputacion(getPrimerUsuario usuarios)(getRecompensa recompensa))(getSigUsuario usuarios))
-                               (cons(getPrimerUsuario usuarios)(sumarDefinitiva(getSigUsuario usuarios)recompensa))))))
+                               (cons(getPrimerUsuario usuarios)(restarDefinitiva(getSigUsuario usuarios)recompensa))))))
 
 ;realiza la accion de sumar reputacion a un usuario;
 (define sumarReputacion(lambda(usuario reputacion)
@@ -284,7 +284,7 @@
 ;Funcion principal de accept
 (define accept (lambda(stack)(lambda(idP)(lambda(idR)
                      (if(pair?(getUsuarioActivo stack))
-                        (if(esDelUsuario? (getPreguntas stack)(getUsuarioActivo stack) idP)
+                        (if(esDelUsuario? (getPreguntas stack)(getUsername(getUsuarioActivo stack)) idP)
                            (if(tieneRecompensa? (getRecompensas stack) idP)
                               (cobrarRecompensa stack idP idR)
                               (asignarRespuesta stack idP idR))
@@ -326,5 +326,5 @@
 (define SO3 (((login SO2 "segundo" 5678 "reward")1)20))
 
 (define SO4 ((((login SO3 "tercero" 45 "answer")31 12 2020)1)"la medida es 1" "medida" "me" "h"))
-(define SO5 (((login SO3 "segundo" 5678 "accept")1)1))
+(define SO5 (((login SO4 "segundo" 5678 "accept")1)1))
 
