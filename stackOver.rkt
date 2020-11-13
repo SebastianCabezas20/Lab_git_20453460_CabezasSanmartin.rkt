@@ -74,7 +74,7 @@
 ;(addPregunta stack pregunta);saca el estado activo del usuario
 (define addPregunta (lambda(stack pregunta)
                       (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) usuarioInactivo (getRecompensa stack))))
-;((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD)
+ 
 (define addIdPregunta (lambda(pregunta idResp)
                         (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(list idResp(idRespuestas pregunta))(getReward pregunta))))
 
@@ -173,17 +173,7 @@
                        (if(null?(getUsuarios stack))
                           stack
                           (if(and(equal?(getUsername(getPrimerUsuario(getUsuarios stack)))username)(equal?(getPass(getPrimerUsuario(getUsuarios stack)))pass))
-                             (if(equal? operation "ask")
-                                (ask (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                (if(equal? operation "reward")
-                                   (reward (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                   (if(equal? operation "answer")
-                                      (answer (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                      (if(equal? operation "accept")
-                                         (accept (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                          (if(equal? operation "stack->string")
-                                             (stack->string (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                             "ninguna opcion")))))
+                             (operation (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
                              (funcionLogin (sigUsuariosStack stack)username pass operation stackFinal)))))
 
 ;------------------ASK
@@ -410,6 +400,32 @@
  (list "La pregunta con el ID"(idRecompensa recompensa)"dada por"(usuarioRecompensa recompensa)"la cantidad es"(getRecompensa recompensa)"\n"
        "y el usuario que respodio a esta pregunta fue"(usuarioResponde recompensa)"\n")))
 
+;------------VOTE
+;funcion principal de vote
+(define vote(lambda(stack)(lambda(operacion)
+                            (operacion stack))))
+
+(define getQuestion (lambda(stack)(lambda(idP)(lambda(boolean)
+                   (if(equal? boolean "true")
+        (list(getUsuarios stack)(votarPositivoPregunta (getPreguntas stack) idP)(getRespuestas stack)usuarioInactivo (getRecompensas stack))
+        (list(getUsuarios stack)(votarNegativoPregunta (getPreguntas stack) idP)(getRespuestas stack)usuarioInactivo (getRecompensas stack)))))))
+;Buscar la pregunta para votar positivamente una pregunta
+(define votarPositivoPregunta(lambda(preguntas idP)
+                       (if(null? preguntas)
+                          null
+                          (if(equal?(idPregunta(primeraPregunta preguntas)) idP)
+                             (cons(votarPositivoP(primeraPregunta Preguntas))(sigPregunta preguntas))
+                             (cons(primeraPregunta preguntas)(votarPositivoPregunta(sigPregunta preguntas) idP))))))
+
+;Buscar la pregunta para vota negativamente una pregunta
+(define votarNegativoPregunta(lambda(preguntas idp)
+                       (if(null? preguntas)
+                          null
+                          (if(equal?(idPregunta(primeraPregunta preguntas)) idP)
+                             (cons(votarNegativoP(primeraPregunta Preguntas))(sigPregunta preguntas))
+                             (cons(primeraPregunta preguntas)(votarNegativoPregunta(sigPregunta preguntas) idP))))))
+
+
 
 (define stackRecompensas null)
 (define stackPreguntas null)
@@ -420,12 +436,12 @@
 
 
 "---"
-(define SO2 (((login stackOver "segundo" 5678 "ask")12 10 2020)"cuanto es el estado" "estado" "eos" "ers"))
+(define SO2 (((login stackOver "segundo" 5678 ask)12 10 2020)"cuanto es el estado" "estado" "eos" "ers"))
 "------------"
-(define SO3 (((login SO2 "segundo" 5678 "reward")1)20))
+(define SO3 (((login SO2 "segundo" 5678 reward)1)20))
 
-(define SO4 ((((login SO3 "tercero" 45 "answer")31 12 2020)1)"la medida es 1" "medida" "me" "h"))
-(define SO5 (((login SO4 "segundo" 5678 "accept")1)1))
+(define SO4 ((((login SO3 "tercero" 45 answer)31 12 2020)1)"la medida es 1" "medida" "me" "h"))
+(define SO5 (((login SO4 "segundo" 5678 accept)1)1))
 
-(display(login SO5 "segundo" 5678 "stack->string"))
+(display(login SO5 "segundo" 5678 stack->string))
 
