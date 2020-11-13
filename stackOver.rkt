@@ -1,48 +1,10 @@
 #lang racket
-;TDA stack
-;(USUARIOS x PREGUNTAS x RESPUESTAS x USUARIOACTIVO X RECOMPENSAS)
-;Selectores
-;(getUsuarios stack)(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(sigUsuariosStack stack)(getRecompensas stack)
-(define getUsuarios car) (define getPreguntas cadr)(define getRespuestas caddr)(define getUsuarioActivo cadddr)
+(require "TDA_usuario.rkt")
+(require "TDA_recompensa.rkt")
+(require "TDA_stack.rkt")
+(require "TDA_fecha.rkt")
 
-(define getRecompensas (lambda(stack)
-                         (car(cdr(cdr(cdr(cdr stack)))))))
 
-(define sigUsuariosStack (lambda(stack)
-                           (list (getSigUsuario(getUsuarios stack))(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(getRecompensas stack))))
-;Modificador
-;(addUsuarioActivo stack usuario)
-(define addUsuarioActivo (lambda(stack usuario)
-                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuario(getRecompensas stack))))
-(define removeUsuarioActivo (lambda(stack)
-                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuarioInactivo (getRecompensas stack))))
-
-;TDA fecha(DIA x MES x AÑO)
-;Constructor (fecha dia mes año)
-(define fecha (lambda(dia mes año)
-                (list dia mes año)))
-;Selectores
-(define getDia car)
-(define getMes cadr)
-(define getAño caddr)
-
-;TDA recompensas (IdRespuesta x UsuarioRecompensa x recompensa x UsuarioResponde)
-;Constructor (recompensa idRespuesta usuarioRecompensa recompensa)
-(define consRecompensa (lambda(idRespuesta usuarioRecompensa recompensa)
-                     (list idRespuesta usuarioRecompensa recompensa null)))
-
-;Selectores (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)(usuarioResponde recompensa)
-;(primeraRecompensa recompensas)(sigRecompensa recompensas)
-(define primeraRecompensa car)
-(define sigRecompensa cdr)
-(define idRecompensa car)
-(define usuarioRecompensa cadr)
-(define getRecompensa caddr)
-(define usuarioResponde cadddr)
-;Modificadores (agregarUsuarioResponde recompensa username)
-;agrega a usuario que respondio la recompensa
-(define addUsuarioResponde (lambda(recompensa username)
-                                 (list (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)username)))
 
 
 ;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD) REWARD 0 = NO 1 = SI
@@ -85,36 +47,13 @@
                       0
                       (+ (contador(sigPregunta preguntas))1))))
 
-;TDA Usuario
-;(USERNAME x PASS x REPUTACION x REPUTACIONRELATIVA)
-;Constructor (usuarioNuevo "username" pass)
-(define usuarioNuevo (lambda(username pass)
-                       (list username pass 30 30)))
-
-;Pertenencia
-
-;Selectores (getUsername usuario)(getPass usuario)(getReputacion usuario)
-(define getUsername car)
-
-(define getPass cadr)
-
-(define getReputacion caddr)
-
-(define getReputacionRelativa cadddr)
 
 
 
 ;TDA Usuarios
 ;(USUARIO x USUARIO x USUARIO)
 
-;Selectores
-;(getPrimerUsuario usuarios)(getSigUsuario usuarios)
-(define getPrimerUsuario car)
 
-(define getSigUsuario cdr)
-
-;modificadores
-(define agregarUsuario cons)
 
 ;TDA respuestas ((ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA) x (TAGS)x ESTADO) 0=NO ACEPTADA 1 =ACEPTADA
 ;Constructor (respuesta id autor idPregunta fecha respuesta tags)
@@ -400,7 +339,7 @@
  (list "La pregunta con el ID"(idRecompensa recompensa)"dada por"(usuarioRecompensa recompensa)"la cantidad es"(getRecompensa recompensa)"\n"
        "y el usuario que respodio a esta pregunta fue"(usuarioResponde recompensa)"\n")))
 
-;------------VOTE
+#|;------------VOTE
 ;funcion principal de vote
 (define vote(lambda(stack)(lambda(operacion)
                             (operacion stack))))
@@ -425,7 +364,7 @@
                              (cons(votarNegativoP(primeraPregunta Preguntas))(sigPregunta preguntas))
                              (cons(primeraPregunta preguntas)(votarNegativoPregunta(sigPregunta preguntas) idP))))))
 
-
+|#
 
 (define stackRecompensas null)
 (define stackPreguntas null)

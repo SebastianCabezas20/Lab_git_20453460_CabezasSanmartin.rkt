@@ -1,0 +1,20 @@
+#lang racket
+
+(provide(all-defined-out))
+
+;(USUARIOS x PREGUNTAS x RESPUESTAS x USUARIOACTIVO X RECOMPENSAS)
+;Selectores
+;(getUsuarios stack)(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(sigUsuariosStack stack)(getRecompensas stack)
+(define getUsuarios car) (define getPreguntas cadr)(define getRespuestas caddr)(define getUsuarioActivo cadddr)
+
+(define getRecompensas (lambda(stack)
+                         (car(cdr(cdr(cdr(cdr stack)))))))
+
+(define sigUsuariosStack (lambda(stack)
+                           (list (getSigUsuario(getUsuarios stack))(getPreguntas stack)(getRespuestas stack)(getUsuarioActivo stack)(getRecompensas stack))))
+;Modificador
+;(addUsuarioActivo stack usuario)
+(define addUsuarioActivo (lambda(stack usuario)
+                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuario(getRecompensas stack))))
+(define removeUsuarioActivo (lambda(stack)
+                           (list (getUsuarios stack)(getPreguntas stack)(getRespuestas stack) usuarioInactivo (getRecompensas stack))))

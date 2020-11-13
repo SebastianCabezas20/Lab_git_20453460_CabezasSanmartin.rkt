@@ -1,0 +1,10 @@
+#lang racket
+(provide(all-defined-out))
+;TDA fecha(DIA x MES x AÑO)
+;Constructor (fecha dia mes año)
+(define fecha (lambda(dia mes año)
+                (list dia mes año)))
+;Selectores
+(define getDia car)
+(define getMes cadr)
+(define getAño caddr)
