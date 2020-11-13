@@ -76,7 +76,7 @@
                       (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) usuarioInactivo (getRecompensa stack))))
 ;((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD)
 (define addIdPregunta (lambda(pregunta idResp)
-                        (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(cons idResp(idRespuestas pregunta))(getReward pregunta))))
+                        (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(list idResp(idRespuestas pregunta))(getReward pregunta))))
 
 ;otras funciones
 ;(contador preguntas)
@@ -181,7 +181,9 @@
                                       (answer (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
                                       (if(equal? operation "accept")
                                          (accept (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
-                                         "no"))))
+                                          (if(equal? operation "stack->string")
+                                             (stack->string (addUsuarioActivo stackFinal (getPrimerUsuario(getUsuarios stack))))
+                                             "ninguna opcion")))))
                              (funcionLogin (sigUsuariosStack stack)username pass operation stackFinal)))))
 
 ;------------------ASK
@@ -326,8 +328,41 @@
 ;Funcion principal de stack->string
 (define stack->string(lambda(stack)
                       (if(pair?(getUsuarioActivo stack))
-                         "si"
-                         (imprimirStack stack))))
+                         (imprimirStackActivo stack)
+                         (imprimirStack stack ))))
+
+;Imprimir stack con login en una funcin pasar la pregunta que sea del usuario y nnexar las respeustas conn un busqueda
+(define imprimirStackActivo (lambda(stack)
+                              (list "USUARIO LOGIN:""\n"(ordenarUsuario(getUsuarioActivo stack))"\n"
+                              "Sus preguntas"(filtrarPreguntas (getPreguntas stack)(getRespuestas stack)(getUsername(getUsuarioActivo stack))))))
+
+;Filtra las preguntas que son del usuario
+(define filtrarPreguntas(lambda(preguntas respuestas usernameActivo)
+                          (if(null? preguntas)
+                             null
+                             (if(equal?(autorPregunta(primeraPregunta preguntas))usernameActivo)
+                                (cons(vincularRespuestas (primeraPregunta preguntas)respuestas)(filtrarPreguntas(sigPregunta preguntas)respuestas usernameActivo))
+                                (filtrarPreguntas(sigPregunta preguntas)respuestas usernameActivo)))))
+
+;busca las respuestas vinculadas a la pregunta
+(define vincularRespuestas(lambda(pregunta respuestas)
+  (list"su pregunta es: ""\n"(ordenarPreguntas pregunta) (buscador (idRespuestas pregunta) respuestas))))
+
+(define primerId car)
+(define sigId cdr)
+;ayuda a la busqueda de las respuestas
+(define buscador(lambda(idResp respuestas)
+                  (if(null? idResp)
+                     null
+                     (cons(buscadorRespuestas(primerId idResp)respuestas)(buscador(sigId idResp)respuestas)))))
+
+;busca la pregunta segun el id de esta
+(define buscadorRespuestas(lambda(idResp respuestas)
+                            (if(null? respuestas)
+                               null
+                               (if(equal?(idRespuesta(primeraRespuesta respuestas))idResp)
+                                  (ordenarRespuestas(primeraRespuesta respuestas))
+                                  (buscadorRespuestas idResp(sigRespuesta respuestas))))))
 
 ;organiza el stack para ser imprimido
 (define imprimirStack (lambda(stack)
@@ -338,10 +373,10 @@
 (define imprimirUsuarios (lambda(usuarios)
                         (if(null? usuarios)
                            null
-                           (cons(ordenarUsuarios(getPrimerUsuario usuarios))(imprimirUsuarios(getSigUsuario usuarios))))))
+                           (cons(ordenarUsuario(getPrimerUsuario usuarios))(imprimirUsuarios(getSigUsuario usuarios))))))
 
 ;prepara el usuario para ser impreso
-(define ordenarUsuarios (lambda(usuario)
+(define ordenarUsuario (lambda(usuario)
                   (list" Nombre del usuario:"(getUsername usuario)"\n" "Pass del usuario"(getPass usuario)"Reputacion del usuario"(getReputacion usuario)"\n")))
 
 ;string de las preguntas
@@ -392,5 +427,5 @@
 (define SO4 ((((login SO3 "tercero" 45 "answer")31 12 2020)1)"la medida es 1" "medida" "me" "h"))
 (define SO5 (((login SO4 "segundo" 5678 "accept")1)1))
 
-(display(stack->string SO3))
+(display(login SO5 "segundo" 5678 "stack->string"))
 
