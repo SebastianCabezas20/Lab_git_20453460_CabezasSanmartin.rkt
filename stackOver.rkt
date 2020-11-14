@@ -6,11 +6,10 @@
 
 
 
-
-;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD) REWARD 0 = NO 1 = SI
+;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD x (VOTOS x NUMEROVISUALIZACIONES x REPORTES x ESTADO))
 ;Constructor (pregunta id autor fecha pregunta tags)
 (define pregunta (lambda(id autor fecha pregunta tag1 tag2 tag3)
-                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0)))
+                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0(list(cons 0 0) 0 0 0))))
 ;Selectores
 ;(idPregunta pregunta)(autorPregunta pregunta)(fechaPregunta pregunta)(Pregunta pregunta)(tagsPregunta pregunta)
 ;(idRespuestas pregunta)(reward pregunta)
@@ -31,14 +30,16 @@
 (define idRespuestas caddr)
 (define getReward cadddr)
 (define primerosDatosPregunta car)
+(define ultimosDatosPregunta(lambda(pregunta)
+                              (cdddr(cdr pregunta))))
 
 ;Modificadores
 ;(addPregunta stack pregunta);saca el estado activo del usuario
 (define addPregunta (lambda(stack pregunta)
-                      (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) usuarioInactivo (getRecompensa stack))))
+                      (list(getUsuarios stack)(cons pregunta (getPreguntas stack))(getRespuestas stack) usuarioInactivo (getRecompensas stack))))
  
 (define addIdPregunta (lambda(pregunta idResp)
-                        (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(list idResp(idRespuestas pregunta))(getReward pregunta))))
+ (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(list idResp(idRespuestas pregunta))0(ultimosDatosPregunta pregunta))))
 
 ;otras funciones
 ;(contador preguntas)
@@ -55,24 +56,24 @@
 
 
 
-;TDA respuestas ((ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA) x (TAGS)x ESTADO) 0=NO ACEPTADA 1 =ACEPTADA
+;TDA respuestas ((ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA) x (TAGS)x ESTADO(VOTOS x REPORTES)) 0=NO ACEPTADA 1 =ACEPTADA
 ;Constructor (respuesta id autor idPregunta fecha respuesta tags)
 (define respuesta (lambda(id autor idPregunta fecha respuesta et1 et2 et3)
-                    (cons(cons(list id autor idPregunta fecha respuesta)(list et1 et2 et3))0)))
+                    (list(list id autor idPregunta fecha respuesta)(list et1 et2 et3)0)))
 ;Selectores(idRespuesta respuesta)(autorRespuesta respuesta)(idPRespuesta respuesta)(fechaRespuesta respuesta)(getRespuesta respuesta)(tagsRespuesta respuesta)
 (define idRespuesta (lambda(respuesta)
-                      (car(car(car respuesta)))))
+                      (car(car respuesta))))
 (define autorRespuesta (lambda(respuesta)
-                      (cadr(car(car respuesta)))))
+                      (cadr(car respuesta))))
 (define idPRespuesta (lambda(respuesta)
-                      (caddr(car (car respuesta)))))
+                      (caddr(car respuesta))))
 (define fechaRespuesta (lambda(respuesta)
-                      (cadddr(car(car respuesta)))))
+                      (cadddr(car respuesta))))
 (define getRespuesta (lambda(respuesta)
-                      (cadr(cdddr(car(car respuesta))))))
-(define tagsRespuesta (lambda(respuesta)
-                        (cdr(car respuesta))))
-(define estadoRespuesta cdr)
+                      (cadr(cdddr(car respuesta)))))
+(define tagsRespuesta cadr)
+(define estadoRespuesta caddr)
+(define primerosDatosRespuesta car)
 (define primeraRespuesta car)
 (define sigRespuesta cdr)
 
@@ -130,15 +131,14 @@
 (cons(getPrimerUsuario usuarios)(restaRelativa (getSigUsuario usuarios) usernameActivo recompensa)))))
 
 ;Activa la recompensa en la pregunta 
-(define activarRecompensa (lambda(preguntas id)
+(define activarRecompensa (lambda(preguntas id recompensa)
                             (if(equal?(idPregunta(primeraPregunta preguntas))id)
-  (cons(list(list(idPregunta(primeraPregunta preguntas))(autorPregunta(primeraPregunta preguntas))(fechaPregunta(primeraPregunta preguntas))(getPregunta(primeraPregunta preguntas)))
-       (tagsPregunta(primeraPregunta preguntas))(idRespuestas(primeraPregunta preguntas))1) (sigPregunta preguntas))
+  (cons(list(primerosDatosPregunta (primeraPregunta preguntas))(tagsPregunta(primeraPregunta preguntas))(idRespuestas(primeraPregunta preguntas))recompensa(ultimosDatosPregunta(primeraPregunta preguntas))) (sigPregunta preguntas))
   (cons(primeraPregunta preguntas)(activarRecompensa(sigPregunta preguntas)id)))))
 
 ;añade recompensa en el stack
 (define addRecompensa (lambda(stack usernameActivo id recompensaUsuario)
-(list (restaRelativa (getUsuarios stack)usernameActivo recompensaUsuario)(activarRecompensa (getPreguntas stack) id)
+(list (restaRelativa (getUsuarios stack)usernameActivo recompensaUsuario)(activarRecompensa (getPreguntas stack) id recompensaUsuario)
   (getRespuestas stack) usuarioInactivo (cons(consRecompensa id usernameActivo recompensaUsuario)(getRecompensas stack)))))
 
 ;Funcion principal de reward
@@ -188,7 +188,7 @@
 ;realiza las acciones en caso de que haya recompensa en la pregunta
 (define cobrarRecompensa (lambda(stack idP idR)
  (list(sumarDefinitiva(restarDefinitiva (getUsuarios stack)(buscarRecompensa(getRecompensas stack) idP))(buscarRecompensa (getRecompensas stack)idP))
-      (addIdP(getPreguntas stack) idP idR)(getRespuestas stack)usuarioInactivo(removeRecompensa(getRecompensas stack)idP))))
+      (addIdP(getPreguntas stack) idP idR)(cambiarEstado(getRespuestas stack) idR)usuarioInactivo(removeRecompensa(getRecompensas stack)idP))))
 
 ;Buscar recompensa por el id de pregunta
 (define buscarRecompensa(lambda(recompensas id)
@@ -251,7 +251,13 @@
 
 ;Asigna la respuesta a la pregunta
 (define asignarRespuesta(lambda(stack idP idR)
-    (list(getUsuarios stack)(addIdP(getPreguntas stack) idP idR)(getRespuestas stack)usuarioInactivo(getRecompensas stack))))
+    (list(getUsuarios stack)(addIdP(getPreguntas stack) idP idR)(cambiarEstado(getRespuestas stack) idR)usuarioInactivo(getRecompensas stack))))
+
+;cambia el estado a acceptada
+(define cambiarEstado(lambda(respuestas idR)
+                       (if(equal?(idRespuesta(primeraRespuesta respuestas)) idR)
+       (cons(list(primerosDatosRespuesta(primeraRespuesta respuestas))(tagsRespuesta(primeraRespuesta respuestas))1)(sigRespuesta respuestas))
+       (cons(primeraRespuesta respuestas)(cambiarEstado(sigRespuesta respuestas)idR)))))
 
 ;-------------------------------STACK->STRING
 ;Funcion principal de stack->string
@@ -327,8 +333,13 @@
 (define ordenarRespuestas(lambda(respuesta)
   (list "El usuario"(autorRespuesta respuesta)"a respondido a la pregunta"(idPRespuesta respuesta)"\n"(getRespuesta respuesta)" "
   (getDia(fechaRespuesta respuesta))"/"(getMes(fechaRespuesta respuesta))"/"(getAño(fechaRespuesta respuesta))"\n"
-  "'Tags'"(primerTag(tagsRespuesta respuesta))(segundoTag(tagsRespuesta respuesta))(tercerTag(tagsRespuesta respuesta))" ID:"(idRespuesta respuesta)"\n")))
+  "'Tags'"(primerTag(tagsRespuesta respuesta))(segundoTag(tagsRespuesta respuesta))(tercerTag(tagsRespuesta respuesta))" ID:"(idRespuesta respuesta)" "(verEstado respuesta)"\n")))
 
+;ve el estado de la respuesta
+(define verEstado (lambda(respuesta)
+                    (if(equal?(estadoRespuesta respuesta)0)
+                       "NO A SIDO ACEPTADA"
+                       " ")))
 ;string del stack recompensas
 (define imprimirRecompensas (lambda(recompensas)
                         (if(null? recompensas)
@@ -375,12 +386,16 @@
 
 
 "---"
-(define SO2 (((login stackOver "segundo" 5678 ask)12 10 2020)"cuanto es el estado" "estado" "eos" "ers"))
+(define SO2 (((login stackOver "segundo" 5678 ask)12 10 2020)"pregunta1" "estado" "eos" "ers"))
 "------------"
 (define SO3 (((login SO2 "segundo" 5678 reward)1)20))
 
-(define SO4 ((((login SO3 "tercero" 45 answer)31 12 2020)1)"la medida es 1" "medida" "me" "h"))
+(define SO4 ((((login SO3 "tercero" 45 answer)31 12 2020)1)"Respuesta1" "medida" "me" "h"))
 (define SO5 (((login SO4 "segundo" 5678 accept)1)1))
-
-(display(login SO5 "segundo" 5678 stack->string))
-
+(define SO6 (((login SO5 "segundo" 5678 ask)12 10 2020)"Pregunta2" "estado" "eos" "ers"))
+(define SO7 ((((login SO6 "tercero" 45 answer)31 12 2020)2)"Respuesta2" "medida" "me" "h"))
+(define SO8 (((login SO7 "segundo" 5678 accept)2)2))
+(define SO9 (((login SO8 "primero" 1234 ask)12 10 2020)"pregunta3" "estado" "eos" "ers"))
+(define SO10 ((((login SO9 "segundo" 5678 answer)31 12 2020)3)"Respuesta3" "medida" "me" "h"))
+(define SO11 (((login SO10 "primero" 1234 accept)3)3))
+(display (stack->string SO11))
