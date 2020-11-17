@@ -1,0 +1,7 @@
+#lang racket
+(define registerFuncion (lambda(stack username pass)
+                          (if(null? stack)
+                             (usuarioNuevo username pass)
+                             (if(equal?(getUsername(getPrimerUsuario stack))username)
+                                (cons(getPrimerUsuario stack)(getSigUsuario stack))
+                                (cons(getPrimerUsuario stack)(registerFuncion (getSigUsuario stack) username pass))))))

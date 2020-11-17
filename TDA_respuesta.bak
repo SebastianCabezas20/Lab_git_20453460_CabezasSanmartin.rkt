@@ -1,0 +1,26 @@
+#lang racket
+
+
+
+;TDA respuestas ((ID x AUTOR x IDPREGUNTA x FECHA x RESPUESTA) x (TAGS)x ESTADO(VOTOS x REPORTES)) 0=NO ACEPTADA 1 =ACEPTADA
+;Constructor (respuesta id autor idPregunta fecha respuesta tags)
+(define respuesta (lambda(id autor idPregunta fecha respuesta et1 et2 et3)
+                    (list(list id autor idPregunta fecha respuesta)(list et1 et2 et3)0(list (cons 0 0) 0))))
+;Selectores(idRespuesta respuesta)(autorRespuesta respuesta)(idPRespuesta respuesta)(fechaRespuesta respuesta)(getRespuesta respuesta)(tagsRespuesta respuesta)
+(define idRespuesta (lambda(respuesta)
+                      (car(car respuesta))))
+(define autorRespuesta (lambda(respuesta)
+                      (cadr(car respuesta))))
+(define idPRespuesta (lambda(respuesta)
+                      (caddr(car respuesta))))
+(define fechaRespuesta (lambda(respuesta)
+                      (cadddr(car respuesta))))
+(define getRespuesta (lambda(respuesta)
+                      (cadr(cdddr(car respuesta)))))
+(define tagsRespuesta cadr)
+(define estadoRespuesta caddr)
+(define primerosDatosRespuesta car)
+(define primeraRespuesta car)
+(define sigRespuesta cdr)
+
+

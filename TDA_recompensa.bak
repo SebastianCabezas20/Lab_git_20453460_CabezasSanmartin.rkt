@@ -2,10 +2,10 @@
 
 (provide(all-defined-out))
 
-;TDA recompensas (IdPregunta x UsuarioRecompensa x recompensa x UsuarioResponde)
+;TDA recompensas (IdRespuesta x UsuarioRecompensa x recompensa x UsuarioResponde)
 ;Constructor (recompensa idRespuesta usuarioRecompensa recompensa)
-(define consRecompensa (lambda(idPregunta usuarioRecompensa recompensa)
-                     (list idPregunta usuarioRecompensa recompensa null)))
+(define consRecompensa (lambda(idRespuesta usuarioRecompensa recompensa)
+                     (list idRespuesta usuarioRecompensa recompensa null)))
 
 ;Selectores (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)(usuarioResponde recompensa)
 ;(primeraRecompensa recompensas)(sigRecompensa recompensas)
