@@ -36,10 +36,38 @@
                                  (list (idRecompensa recompensa)(usuarioRecompensa recompensa)(getRecompensa recompensa)username)))
 
 ;borra recompensa de la lista
-;recursion: natural
+;Dom: lista recompensas x id
+;Rec:lista recompensas
+;recursion: natural,se necesita la lista completa
 (define removeRecompensa(lambda(recompensas id)
                           (if(null? recompensas)
                              null
                              (if(equal?(idRecompensa(primeraRecompensa recompensas))id)
                                 (sigRecompensa recompensas)
                                 (cons(primeraRecompensa recompensas)(removeRecompensa(sigRecompensa recompensas)id))))))
+
+
+#|Dom: lista recompensas x entero(id pregunta) x string(username)
+  Rec: lista recompensas
+  Descr: añade username de usuario que responde a informacion de recompensas, solo si la pregunta tiene recompensa
+  Recursividad: natural, se necesita la lista completa|#
+(define addUsuarioRecompensa (lambda(recompensas idP usernameActivo)
+                               (if(null? recompensas)
+                                  null
+                                  (if(equal?(idRecompensa(primeraRecompensa recompensas))idP)
+                               (cons(addUsuarioResponde (primeraRecompensa recompensas)usernameActivo)(sigRecompensa recompensas))
+                               (cons(primeraRecompensa recompensas)(addUsuarioRecompensa (sigRecompensa recompensas)idP usernameActivo))))))
+
+
+
+;otras funciones
+#|Dom: lista recompensas x entero(id pregunta) 
+  Rec: informacion de recompensa
+  Descr: busca la informacion de la recompensa mediante id de la pregunta
+  Recursividad: cola, se necesita la primera recompensa de la lista|#
+(define buscarRecompensa(lambda(recompensas id)
+                          (if(null? recompensas)
+                             null
+                             (if(equal?(idRecompensa(primeraRecompensa recompensas))id)
+                                (primeraRecompensa recompensas)
+                                (buscarRecompensa(sigRecompensa recompensas)id)))))

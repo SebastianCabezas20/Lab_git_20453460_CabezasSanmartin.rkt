@@ -11,7 +11,7 @@
 #|Dom: lista de usuarios x string(username) x entero(recompensa)
   Rec: lista de usuarios
   Descr:Realiza la resta relativa a la recompensa que ofrecio
-  Recursividad: natural|#
+  Recursividad: natural, porque se necesita la lista completa|#
 (define restaRelativa (lambda(usuarios usernameActivo recompensa)
                         (if(equal?(getUsername(getPrimerUsuario usuarios))usernameActivo)
 (cons(list(getUsername(getPrimerUsuario usuarios))(getPass(getPrimerUsuario usuarios))
@@ -21,11 +21,11 @@
 #|Dom: lista de preguntas x entero(id pregunta) x entero(recompensa)
   Rec: lista de preguntas
   Descr: pone la recompensa en la pregunta 
-  Recursividad: natural|#
+  Recursividad: natural, porque se necesita la lista completa|#
 (define activarRecompensa (lambda(preguntas id recompensa)
                             (if(equal?(idPregunta(primeraPregunta preguntas))id)
   (cons(list(primerosDatosPregunta (primeraPregunta preguntas))(tagsPregunta(primeraPregunta preguntas))(idRespuestas(primeraPregunta preguntas))recompensa(votosPosPregunta(primeraPregunta preguntas))
-   (votosNegPregunta(primeraPregunta preguntas))(numeroVisual(primeraPregunta preguntas))(estadoPregunta(primeraPregunta preguntas))) (sigPregunta preguntas))
+   (votosNegPregunta(primeraPregunta preguntas))(estadoPregunta(primeraPregunta preguntas))) (sigPregunta preguntas))
   (cons(primeraPregunta preguntas)(activarRecompensa(sigPregunta preguntas)id)))))
 
 #|Dom: stack general x string(username) x entero(id pregunta) x entero(recompensa)
@@ -46,22 +46,12 @@
                        (list(getUsuarios stack)(getPreguntas stack)(cons respuesta (getRespuestas stack))usuarioInactivo
                             (addUsuarioRecompensa(getRecompensas stack)idP (getUsername(getUsuarioActivo stack))))))
 
-#|Dom: lista recompensas x entero(id pregunta) x string(username)
-  Rec: lista recompensas
-  Descr: añade username de usuario que responde a informacion de recompensas, solo si la pregunta tiene recompensa
-  Recursividad: natural|#
-(define addUsuarioRecompensa (lambda(recompensas idP usernameActivo)
-                               (if(null? recompensas)
-                                  null
-                                  (if(equal?(idRecompensa(primeraRecompensa recompensas))idP)
-                               (cons(addUsuarioResponde (primeraRecompensa recompensas)usernameActivo)(sigRecompensa recompensas))
-                               (cons(primeraRecompensa recompensas)(addUsuarioRecompensa (sigRecompensa recompensas)idP usernameActivo))))))
 
 ;----------------------------------------ACCEPT
 #|Dom: lista preguntas x string(username) x entero(id pregunta) 
   Rec: booleano
   Descr: verifica si el id de la pregunta pertenece al usuario
-  Recursividad: cola|#
+  Recursividad: cola, se necesita saber la primera pregunta de la lista|#
 (define esDelUsuario? (lambda(preguntas usernameActivo idP)
        (if(null? preguntas)
           #f
@@ -72,7 +62,7 @@
 #|Dom: lista recompensas x entero(id pregunta) 
   Rec: booleano
   Descr: verifica si la pregunta tiene recompensa
-  Recursividad: cola|#
+  Recursividad: cola, se necesita la primera recompensa de la lista|#
 (define tieneRecompensa? (lambda(recompensas idP)
                            (if(null? recompensas)
                               #f
@@ -88,21 +78,12 @@
  (list(sumarDefinitiva(restarDefinitiva (getUsuarios stack)(buscarRecompensa(getRecompensas stack) idP))(buscarRecompensa (getRecompensas stack)idP))
       (addIdP(getPreguntas stack) idP idR)(cambiarEstado(getRespuestas stack) idR)usuarioInactivo(removeRecompensa(getRecompensas stack)idP))))
 
-#|Dom: lista recompensas x entero(id pregunta) 
-  Rec: informacion de recompensa
-  Descr: busca la informacion de la recompensa mediante id de la pregunta
-  Recursividad: cola|#
-(define buscarRecompensa(lambda(recompensas id)
-                          (if(null? recompensas)
-                             null
-                             (if(equal?(idRecompensa(primeraRecompensa recompensas))id)
-                                (primeraRecompensa recompensas)
-                                (buscarRecompensa(sigRecompensa recompensas)id)))))
+
 
 #|Dom: lista usuarios x  recompensa(informacion) 
   Rec: lista de usuarios
   Descr: selecciona el usuario al cual se le sumara la recompensa
-  Recursividad: natural|#
+  Recursividad: natural, porque se necesita la lista completa|#
 (define sumarDefinitiva (lambda(usuarios recompensa)
                          (if(null? usuarios)
                             null
@@ -113,7 +94,7 @@
 #|Dom: lista usuarios x  recompensa(informacion) 
   Rec: lista de usuarios
   Descr: selecciona el usuario al cual se le restara la recompensa
-  Recursividad: natural|#
+  Recursividad: natural,porque se necesita la lista completa|#
 (define restarDefinitiva (lambda(usuarios recompensa)
                          (if(null? usuarios)
                             null
@@ -140,20 +121,17 @@
 |#
 (define imprimirStackActivo (lambda(stack)
                               (list "USUARIO LOGIN:""\n"(ordenarUsuario(getUsuarioActivo stack))"\n"
-                              "Sus preguntas"(filtrarPreguntas (getPreguntas stack)(getRespuestas stack)(getUsername(getUsuarioActivo stack))))))
+                              "Las preguntas"(seleccionarPreguntas (getPreguntas stack)(getRespuestas stack)))))
 
 #|Dom:lista preguntas x lista respuestas x string(username) 
   Rec: string
-  Descr: selecciona las preguntas que son del usuario activo
-  recursividad: si no encuentra ninguna pregunta sera de cola y encuentra sera natural
+  Descr: selecciona las preguntas 
+  recursividad: si no encuentra ninguna pregunta sera de cola y encuentra sera natural, se necesita lista de string
 |#
-;Filtra las preguntas que son del usuario
-(define filtrarPreguntas(lambda(preguntas respuestas usernameActivo)
+(define seleccionarPreguntas(lambda(preguntas respuestas)
                           (if(null? preguntas)
                              null
-                             (if(equal?(autorPregunta(primeraPregunta preguntas))usernameActivo)
-                                (cons(vincularRespuestas (primeraPregunta preguntas)respuestas)(filtrarPreguntas(sigPregunta preguntas)respuestas usernameActivo))
-                                (filtrarPreguntas(sigPregunta preguntas)respuestas usernameActivo)))))
+                             (cons(vincularRespuestas (primeraPregunta preguntas)respuestas)(seleccionarPreguntas(sigPregunta preguntas)respuestas)))))
 
 
 #|Dom: pregunta x lista de respuestas 
@@ -162,12 +140,12 @@
 |#
 ;busca las respuestas vinculadas a la pregunta
 (define vincularRespuestas(lambda(pregunta respuestas)
-  (list"su pregunta es: ""\n"(ordenarPreguntas pregunta) (buscador (idRespuestas pregunta) respuestas))))
+  (list"\n"" "(ordenarPreguntas pregunta)" Sus respuestas son:\n" (buscador (idRespuestas pregunta) respuestas)"\n\n")))
 
 #|Dom: lista de id de respuestas x lista de respuestas 
   Rec: string
   Descr: funcion auxiliar que seleccionara el id de una determinada respuesta a buscar
-  recursion: natural|#
+  recursion: natural, porque se necesita la lista completa|#
 ;ayuda a la busqueda de las respuestas
 (define buscador(lambda(idResp respuestas)
                   (if(null? idResp)
@@ -177,7 +155,7 @@
 #|Dom: entero(id respuesta) x lista de respuestas
   Rec: string
   Descr: busca la respuesta mediante un id para ordenar como string
-  recursion: cola|#
+  recursion: cola, porque se necesita el primer id de la lista|#
 (define buscadorRespuestas(lambda(idResp respuestas)
                             (if(null? respuestas)
                                null
@@ -190,13 +168,13 @@
   Descr: prepara el string del stack mediante funciones
 |#
 (define imprimirStack (lambda(stack)
-(list "USUARIOS DEL STACK""\n"(imprimirUsuarios(getUsuarios stack))"\n" "PREGUNTAS:""\n"(imprimirPreguntas(getPreguntas stack))"\n"
-      "RESPUESTAS:""\n"(imprimirRespuestas(getRespuestas stack))"\n""RECOMPENSAS:""\n"(imprimirRecompensas(getRecompensas stack))"\n")))
+(list "USUARIOS DEL STACK""\n"(imprimirUsuarios(getUsuarios stack))"\n" "PREGUNTAS:""\n""\n"(seleccionarPreguntas (getPreguntas stack)(getRespuestas stack))
+      "\n""RECOMPENSAS:""\n"(imprimirRecompensas(getRecompensas stack))"\n")))
 
 #|Dom: lista usuarios 
   Rec: string
   Descr: selecciona el usuario a ordenar como string
-  recursion: natural|#
+  recursion: natural, porque se necesita la lista completa|#
 (define imprimirUsuarios (lambda(usuarios)
                         (if(null? usuarios)
                            null
@@ -207,57 +185,34 @@
   Descr: ordena al usuario como string
   |#
 (define ordenarUsuario (lambda(usuario)
-                  (list" Nombre del usuario:"(getUsername usuario)"\n" "Pass del usuario"(getPass usuario)"Reputacion del usuario"(getReputacion usuario)"\n")))
+                  (list"      Nombre del usuario:"(getUsername usuario)"\n" "         Pass del usuario"(getPass usuario)" Reputacion del usuario"(getReputacion usuario)"\n\n")))
 
-#|Dom: lista de preguntas 
-  Rec: string
-  Descr: selecciona la pregunta que sera ordenada como string
-  recursion: natural|#
-(define imprimirPreguntas (lambda(preguntas)
-                        (if(null? preguntas)
-                           null
-                           (cons(ordenarPreguntas(primeraPregunta preguntas))(imprimirPreguntas(sigPregunta preguntas))))))
 
 #|Dom: pregunta 
   Rec: string
   Descr: ordena la pregunta como string
   |#
 (define ordenarPreguntas(lambda(pregunta)
- (list" El usuario"(autorPregunta pregunta)"pregunta:""\n"(getPregunta pregunta)" "(getDia(fechaPregunta pregunta))"/"
+ (list"   El usuario"(autorPregunta pregunta)"pregunta:""\n""      "(getPregunta pregunta)" "(getDia(fechaPregunta pregunta))"/"
       (getMes(fechaPregunta pregunta))"/"(getAño(fechaPregunta pregunta))" ""likes:"(votosPosPregunta pregunta)
-   "dislike:"(votosNegPregunta pregunta) "\n""'Tags'"" ID:"(idPregunta pregunta) "\n")))
+   "dislike:"(votosNegPregunta pregunta) "\n""      'Tags'"(primerTag(tagsPregunta pregunta))(segundoTag(tagsPregunta pregunta))(tercerTag(tagsPregunta pregunta))" ID:"(idPregunta pregunta) "\n")))
 
-#|Dom: lista de respuestas
-  Rec: string
-  Descr: selecciona la respuesta que sera ordenada como string
-  recursion: natural|#
-(define imprimirRespuestas (lambda(respuestas)
-                        (if(null? respuestas)
-                           null
-                           (cons(ordenarRespuestas(primeraRespuesta respuestas))(imprimirRespuestas(sigRespuesta respuestas))))))
 
 #|Dom: respuesta 
   Rec: string
   Descr: ordena la respuesta como string
   |#
 (define ordenarRespuestas(lambda(respuesta)
-  (list "El usuario"(autorRespuesta respuesta)"a respondido a la pregunta"(idPRespuesta respuesta)"\n"(getRespuesta respuesta)" "
+  (list "   El usuario"(autorRespuesta respuesta)"a respondido a la pregunta""\n""     "(getRespuesta respuesta)" "
   (getDia(fechaRespuesta respuesta))"/"(getMes(fechaRespuesta respuesta))"/"(getAño(fechaRespuesta respuesta))" ""likes:"(votoPosRespuesta respuesta)
                  "dislike:"(votoNegRespuesta respuesta) "\n"
-  "'Tags'"(primerTag(tagsRespuesta respuesta))(segundoTag(tagsRespuesta respuesta))(tercerTag(tagsRespuesta respuesta))" ID:"(idRespuesta respuesta)" "(verEstado respuesta)"\n")))
+  "      'Tags'"(primerTag(tagsRespuesta respuesta))(segundoTag(tagsRespuesta respuesta))(tercerTag(tagsRespuesta respuesta))" ID:"(idRespuesta respuesta)" \n")))
 
-#|Dom: respuestas 
-  Rec: string
-  Descr: verifica si la respuesta a sido aceptada
-  |#
-(define verEstado (lambda(respuesta)
-                    (if(equal?(estadoRespuesta respuesta)0)
-                       "NO A SIDO ACEPTADA"
-                       " ")))
+
 #|Dom: lista de recompensas
   Rec: string
   Descr: selecciona la recompensa que sera ordenada como string
-  recursion: natural|#
+  recursion: natural, porque se necesita la lista completa|#
 (define imprimirRecompensas (lambda(recompensas)
                         (if(null? recompensas)
                            null
@@ -278,14 +233,17 @@
   Descr: funcion que determinara si votar negativamente o positivamente una respuesta
  |#
 (define getAnswers (lambda(stack)(lambda(idP)(lambda(idR)(lambda(boolean)
+                      (if(pair?(getUsuarioActivo stack))
                           (if(equal? boolean "true")
      (list(getUsuarios stack)(getPreguntas stack)(votarPositivoRespuesta(getRespuestas stack)(getPreguntas stack) idP idR) usuarioInactivo (getRecompensas stack))
-     (list(getUsuarios stack)(getPreguntas stack)(votarNegativoRespuesta(getRespuestas stack)(getPreguntas stack) idP idR) usuarioInactivo (getRecompensas stack))))))))
+     (list(getUsuarios stack)(getPreguntas stack)(votarNegativoRespuesta(getRespuestas stack)(getPreguntas stack) idP idR) usuarioInactivo (getRecompensas stack)))
+                          stack))))))
+
 
 #|Dom: lista de respuestas x lista de preguntas x entero(id pregunta) x entero(id respuesta)
   Rec: lista de respuestas 
   Descr: elige la respuesta a votar positivamente si esta se encuentra en la lista de id de la pregunta
-  recursividad:cola |#
+  recursividad:cola , porque se necesita saber la primera pregunta de la lista|#
 (define votarPositivoRespuesta(lambda(respuestas preguntas idP idR)
                                 (if(null? preguntas)
                                    respuestas
@@ -293,53 +251,16 @@
                                       (votarPositivoR respuestas idR)
                                       (votarPositivoRespuesta respuestas (sigPregunta preguntas) idP idR)))))
 
-#|Dom: lista de respuestas x entero(id respuesta) 
-  Rec: lista de respuestas 
-  Descr: realiza la accion de votar positivamente
-  recursividad: natural |#
-(define votarPositivoR (lambda(respuestas idR)
-                         (if(null? respuestas)
-                            null
-                            (if(equal?(idRespuesta(primeraRespuesta respuestas)) idR)
-   (cons(list(primerosDatosRespuesta(primeraRespuesta respuestas))(tagsRespuesta(primeraRespuesta respuestas))(estadoRespuesta(primeraRespuesta respuestas))(+(votoPosRespuesta(primeraRespuesta respuestas))1)
-                 (votoNegRespuesta(primeraRespuesta respuestas)))(sigRespuesta respuestas))
-                        (cons(primeraRespuesta respuestas)(votarPositivoR (sigRespuesta respuestas) idR))))))
-
 #|Dom: lista de respuestas x lista de preguntas x entero(id pregunta) x entero(id respuesta)
   Rec: lista de respuestas 
   Descr: elige la respuesta a votar negativamente si esta se encuentra en la lista de id de la pregunta
-  recursividad:cola |#
+  recursividad:cola, se necesita la primera pregunta de la lista |#
 (define votarNegativoRespuesta(lambda(respuestas preguntas idP idR)
                                 (if(null? preguntas)
                                    respuestas
                                    (if(existeRespuesta?(idRespuestas(primeraPregunta preguntas)) idR)
                                       (votarNegativoR respuestas idR)
                                       (votarNegativoRespuesta respuestas (sigPregunta preguntas) idP idR)))))
-
-#|Dom: lista de respuestas x entero(id respuesta) 
-  Rec: lista de respuestas 
-  Descr: realiza la accion de votar negativamente
-  recursividad: natural |#
-(define votarNegativoR (lambda(respuestas idR)
-                         (if(null? respuestas)
-                            null
-                            (if(equal?(idRespuesta(primeraRespuesta respuestas)) idR)
-   (cons(list(primerosDatosRespuesta(primeraRespuesta respuestas))(tagsRespuesta(primeraRespuesta respuestas))(estadoRespuesta(primeraRespuesta respuestas))(+(votoPosRespuesta(primeraRespuesta respuestas))1)
-                 (votoNegRespuesta(primeraRespuesta respuestas)))(sigRespuesta respuestas))
-                        (cons(primeraRespuesta respuestas)(votarPositivoR (sigRespuesta respuestas) idR))))))
-
-#|Dom: lista de ids respuestas x entero(id respuesta) 
-  Rec: booleano 
-  Descr: verifica si existe ese id en la lista
-  recursividad: cola |#
-;verifica si existe respuesta en los ids de la pregunta
-(define existeRespuesta? (lambda(idResp idR)
-                           (if(null? idResp)
-                              #f
-                            (if(equal?(primerId idResp)idR)
-                               #t
-                               (existeRespuesta? (sigId idResp) idR)))))
-
 
 
 ;--------------------------------------PREGUNTA
@@ -349,9 +270,11 @@
   Descr: funcion que determinara si votar negativamente o positivamente una pregunta
  |#
 (define getQuestion (lambda(stack)(lambda(idP)(lambda(boolean)
-                   (if(equal? boolean "true")
+         (if(pair?(getUsuarioActivo stack))
+          (if(equal? boolean "true")
         (list(getUsuarios stack)(votarPositivoPregunta (getPreguntas stack) idP)(getRespuestas stack)usuarioInactivo (getRecompensas stack))
-        (list(getUsuarios stack)(votarNegativoPregunta (getPreguntas stack) idP)(getRespuestas stack)usuarioInactivo (getRecompensas stack)))))))
+        (list(getUsuarios stack)(votarNegativoPregunta (getPreguntas stack) idP)(getRespuestas stack)usuarioInactivo (getRecompensas stack)))
+          stack)))))
 
 
 

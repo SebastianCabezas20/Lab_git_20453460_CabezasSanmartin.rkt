@@ -1,12 +1,12 @@
 #lang racket
 
 (provide (all-defined-out))
-;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD x V.positivo x V.negativo x NUMEROVISUALIZACIONES x ESTADO)
+;TDA Pregunta ((ID x AUTOR x FECHA x PREGUNTA) x (TAGS) x (ID RESPUESTAS) x REWARD x V.positivo x V.negativo x ESTADO)
 
 ;Descr: permite construir una pregunta
 ;Constructor (pregunta id autor fecha pregunta tags)
 (define pregunta (lambda(id autor fecha pregunta tag1 tag2 tag3)
-                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0 3 4 0 0)))
+                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0 3 4 0)))
 ;Selectores
 ;(idPregunta pregunta)(autorPregunta pregunta)(fechaPregunta pregunta)(Pregunta pregunta)(tagsPregunta pregunta)
 ;(idRespuestas pregunta)(reward pregunta)(votosPosPregunta pregunta)(votosNegPregunta pregunta)
@@ -44,13 +44,9 @@
 (define votosNegPregunta (lambda(pregunta)
                          (caddr(cdddr pregunta))))
 
-;Descr: permite seleccionar las visualizaciones de la pregunta
-(define numeroVisual (lambda(pregunta)
-                         (cadddr(cdddr pregunta))))
-
 ;Descr: permite seleccionar el estado de la pregunta
 (define estadoPregunta (lambda(pregunta)
-                         (cadr(cdddr(cdddr pregunta)))))
+                        (cadddr(cdddr pregunta))))
 
 
 ;(primerTag pregunta)(segundoTag pregunta)(tercerTag pregunta)
@@ -68,13 +64,16 @@
 ;Descr: permite seleccionar los primeros datos de la pregunta
 (define primerosDatosPregunta car)
 
+;Descr: permite seleccionar la primera pregunta
 (define primeraPregunta car)
+
+;Descr: permite seleccionar la siguiente pregunta
 (define sigPregunta cdr)
 
 #|Dom: lista de preguntas
   Rec: lista de preguntas
   Descr: selecciona pregunta a para añadir voto positivo
-  recursion: natural|#
+  recursion: natural, se necesita la lista completa|#
 ;Buscar la pregunta para votar positivamente una pregunta
 (define votarPositivoPregunta(lambda(preguntas idP)
                        (if(null? preguntas)
@@ -85,7 +84,7 @@
 #|Dom: lista de preguntas
   Rec: lista de preguntas
   Descr: selecciona pregunta a para añadir voto negativo
-  recursion: natural|#
+  recursion: natural, se necesita la lista completa|#
 (define votarNegativoPregunta(lambda(preguntas idP)
                        (if(null? preguntas)
                           null
@@ -98,13 +97,13 @@
 ;(addIdPregunta pregunta idRespuesta)
 ;Descr: permite añadir un id de una respuesta a la lista de id de respuestas
 (define addIdPregunta (lambda(pregunta idResp)
- (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(list idResp(idRespuestas pregunta))0 (votosPosPregunta pregunta)
-   (votosNegPregunta pregunta)(numeroVisual pregunta)(estadoPregunta pregunta))))
+ (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(cons idResp(idRespuestas pregunta))0 (votosPosPregunta pregunta)
+   (votosNegPregunta pregunta)0)))
 
 #|Dom: lista de preguntas x  entero(id pregunta) x entero(id respuesta) 
   Rec: lista de preguntas
   Descr: selecciona la pregunta a la cual se añadira el id de una determinada respuesta
-  recursion: natural|#
+  recursion: natural, se necesita la lista completa|#
 (define addIdP (lambda(preguntas idPreg idResp)
                   (if(null? preguntas)
                      null
@@ -118,7 +117,7 @@
   |#
 (define accionVotarNegativoP (lambda(pregunta)
       (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(idRespuestas pregunta)(getReward pregunta)(votosPosPregunta pregunta)
-          (+(votosNegPregunta pregunta)1)(numeroVisual pregunta)(estadoPregunta pregunta))))
+          (+(votosNegPregunta pregunta)1)(estadoPregunta pregunta))))
 
 #|Dom: pregunta 
   Rec: pregunta
@@ -127,7 +126,7 @@
 ;realiza la accion de sumar voto positivo
 (define accionVotarPositivoP (lambda(pregunta)
       (list(primerosDatosPregunta pregunta)(tagsPregunta pregunta)(idRespuestas pregunta)(getReward pregunta)(+(votosPosPregunta pregunta)1)
-          (votosNegPregunta pregunta)(numeroVisual pregunta)(estadoPregunta pregunta))))
+          (votosNegPregunta pregunta)(estadoPregunta pregunta))))
 
 
 
