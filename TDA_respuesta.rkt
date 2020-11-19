@@ -8,7 +8,7 @@
 ;Descr: permite la construcción de una respuesta
 ;Constructor (respuesta id autor idPregunta fecha respuesta tags) 
 (define respuesta (lambda(id autor idPregunta fecha respuesta et1 et2 et3)
-                    (list(list id autor idPregunta fecha respuesta)(list et1 et2 et3)0 1 2)))
+                    (list(list id autor idPregunta fecha respuesta)(list et1 et2 et3)0 0 0)))
 
 ;Selectores
 ;(idRespuesta respuesta)(autorRespuesta respuesta)(idPRespuesta respuesta)(fechaRespuesta respuesta)(getRespuesta respuesta)(tagsRespuesta respuesta)

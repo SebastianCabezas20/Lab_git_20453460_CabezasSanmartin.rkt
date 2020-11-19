@@ -6,7 +6,7 @@
 ;Descr: permite construir una pregunta
 ;Constructor (pregunta id autor fecha pregunta tags)
 (define pregunta (lambda(id autor fecha pregunta tag1 tag2 tag3)
-                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0 3 4 0)))
+                   (list (list id autor fecha pregunta)(list tag1 tag2 tag3) null 0 0 0 0)))
 ;Selectores
 ;(idPregunta pregunta)(autorPregunta pregunta)(fechaPregunta pregunta)(Pregunta pregunta)(tagsPregunta pregunta)
 ;(idRespuestas pregunta)(reward pregunta)(votosPosPregunta pregunta)(votosNegPregunta pregunta)

@@ -1,5 +1,7 @@
 #lang racket
 
+;FUNCIONES PRINCIPALES
+
 
 (require "complementarias.rkt")
 (require "TDA_usuario.rkt")
@@ -10,13 +12,11 @@
 (require "TDA_pregunta.rkt")
 
 ;----------------------------------------USUARIO--------------------------------------------
-(define reputacionVacia 0)
+
 (define idVacio null)
 (define usuarioInactivo null)
 
-;------------------------------------- STACK USUARIOS---------------------------------------------
 
-(define stackUsuariosVacia null)
 
 ;------------REGISTER
 #|Dom: stack de usuarios x string(username) x entero o string(pass)
@@ -136,11 +136,18 @@
 (define stackUsuarios (list (usuarioNuevo "primero" 1234)(usuarioNuevo "segundo" 5678)(usuarioNuevo "tercero" 45)));stack de usuarios
 (define stackOver (list stackUsuarios stackPreguntas stackRespuestas sinUsuarioActivo stackRecompensas))
 
+(register stackOver "user100" "pass45")
 
 #|
-(register stackOver "user1" "pass1"))
-(register stackOver "user2" "pass2"))
-(register stackOver "user3" 1234 ))
+(register stackOver "user1" "pass1")
+(register stackOver "user2" "pass2")
+(register stackOver "user3" 1234 )
+|#
+
+#|
+(login stackOver "primero" 1234 ask)
+(login stackOver "segundo" 567 reward)
+(login stackOver "tercero" 45 answer)
 |#
 (define SO2 (((login stackOver "primero" 1234 ask)27 11 2020)"pregunta1" "et1" "et2" "et3"))
 #|
@@ -158,37 +165,23 @@
 (define SO4 ((((login SO3 "tercero" 45 answer)31 12 2020)1)"Respuesta1" "et1" "et2" "et3"))
 #|
 ((((login SO3 "tercero" 45 answer)31 12 2020)1)"Respuesta1" "et1" "et2" "et3")
-((((login SO3 "primero" 1234 answer)31 12 2020)1)"Respuesta2" "et1" "et2" "et3")
-((((login SO3 "segundo" 567 answer)31 12 2020)1)"Respuesta2" "et1" "et2" "et3")
+((((login SO3 "primero" 1234 answer)31 12 2020)2)"Respuesta2" "et1" "et2" "et3")
+((((login SO3 "segundo" 567 answer)31 12 2020)3)"Respuesta2" "et1" "et2" "et3")
 |#
-(define SO5 (((login SO4 "segundo" 5678 accept)1)1))
+(define SO5 (((login SO4 "primero" 1234 accept)1)1))
 #|
 (((login SO4 "segundo" 5678 accept)2)2)
 (((login SO4 "primero" 1234 accept)1)1)
 (((login SO4 "tercero" 45 accept)3)3)
 |#
-(define SO12 ((((login SO11 "primero" 1234 vote)getQuestion)1)"true"))
-(define SO13 (((((login SO12 "primero" 1234 vote)getAnswers)1)1)"true"))
+(define SO12 ((((login SO5 "primero" 1234 vote)getQuestion)1)"true"))
+(define SO13 (((((login SO5 "primero" 1234 vote)getAnswers)1)1)"true"))
 #|
 ((((login SO11 "primero" 1234 vote)getQuestion)1)"true")
 (((((login SO12 "primero" 1234 vote)getAnswers)1)1)"true")
 ((((login SO11 "primero" 1234 vote)getQuestion)1)"false")
 |#
 
-(define SO6 (((login SO5 "segundo" 5678 ask)12 10 2020)"Pregunta2" "et1" "et2" "et3"))
-(define SO7 ((((login SO6 "tercero" 45 answer)31 12 2020)2)"Respuesta2" "et1" "et2" "et3"))
-(define SO8 (((login SO7 "segundo" 5678 accept)2)2))
-(define SO9 (((login SO8 "primero" 1234 ask)12 10 2020)"pregunta3" "et1" "et2" "et3"))
-(define SO10 ((((login SO9 "segundo" 5678 answer)31 12 2020)3)"Respuesta3" "et1" "et2" "et3"))
-(define SO11 (((login SO10 "primero" 1234 accept)3)3))
-(define SO12 ((((login SO11 "primero" 1234 vote)getQuestion)1)"true"))
-(define SO13 (((((login SO12 "primero" 1234 vote)getAnswers)1)1)"true"))
-(define SO14 ((((login SO13 "tercero" 45 answer)31 12 2020)2)"Respuesta4" "et1" "et2" "et3"))
-(define SO15 (((login SO14 "segundo" 5678 accept)2)4))
-(define SO16 (((login SO15 "segundo" 5678 ask)12 10 2020)"Pregunta4" "et1" "et2" "et3"))
-(define SO17 (((login SO16 "tercero" 45 reward)4)50))
-(define SO18 ((((login SO17 "primero" 1234 answer)31 12 2020)4)"Respuesta5" "et1" "et2" "et3"))
-(define SO19 (((login SO18 "segundo" 5678 accept)4)5))
 
 #|
 (display (stack->string SO2))
@@ -196,3 +189,4 @@
 (display (stack->string SO4))
 |#
 
+(display (stack->string SO13))
